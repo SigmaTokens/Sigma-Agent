@@ -1,0 +1,34 @@
+{
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write \"**/*.{js,ts,jsx,tsx,json,md}\"",
+    "prod-server": "npm --prefix server run start",
+    "prod": "concurrently \"npm run prod-server\"",
+    "dev-server": "npm --prefix server run dev",
+    "dev": "concurrently \"npm run dev-server\"",
+    "start-dev": "npm install cross-env && cross-env MODE=dev node start.js dev",
+    "start-prod": "npm install cross-env && cross-env MODE=prod node start.js prod"
+  },
+  "name": "sigma-agent",
+  "version": "1.0.0",
+  "description": "**Add stuff here later on**",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SigmaTokens/Sigma-Agent.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SigmaTokens/Sigma-Agent/issues"
+  },
+  "homepage": "https://github.com/SigmaTokens/Sigma-Agent#readme",
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prettier": "3.5.3"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "uuid": "^11.1.0"
+  }
+}
