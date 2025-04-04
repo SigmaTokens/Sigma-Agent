@@ -7,14 +7,14 @@
 To run the project in production, run the following command:
 with npm: `npm run start-prod`
 
-Then you can browse to [localhost:3000](localhost:3000)
+Then you can browse to [localhost:9007](localhost:9007)
 
 ### Development
 
 To run the project in development, run the following command:
 with npm: `npm run start-dev`
 
-Server is running in [localhost:3000](localhost:3000)
+Server is running in [localhost:9007](localhost:9007)
 
 ## Participants
 
