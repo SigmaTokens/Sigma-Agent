@@ -4,6 +4,7 @@ import { Globals } from './globals'
 import { isAdmin } from './utilities/auth'
 import { Constants } from './constants'
 import { isWindows, windows_enable_auditing, isMac } from './utilities/host'
+import { serveHoneytokens } from "./routes/honeytokens";
 
 main()
 
@@ -22,8 +23,9 @@ function main(): void {
     }
     init()
       .then(() => {
-        Globals.app = app
-        test_honeytoken();
+        serveHoneytokens(app);
+        Globals.app = app;
+        // test_honeytoken();
         app.listen(port, () => {
           console.log(`[+] Server running on port ${port}`)
         })
