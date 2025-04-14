@@ -6,7 +6,7 @@ import { isWindows, isMac } from "../utilities/host";
 import { stderr } from "process";
 import { sleep } from "../utilities/utilities";
 import { Honeytoken_Text } from "./Honeytoken_Text";
-
+const config = require('./config.json');
 
 export class Monitor_Text extends Monitor {
 	file: string;
@@ -89,13 +89,32 @@ export class Monitor_Text extends Monitor {
 								// TODO: check whether the last alert doesn't already exists in the db
 								// TODO: replace the "test" with actual stuff
 								console.log("Token was accessed:", subjectAccount);
-								// create_alert_to_token_id(
-								// 	Globals.app.locals.db,
-								// 	"test",
-								// 	accessDate.getTime(),
-								// 	subjectDomain + "/" + subjectAccount,
-								// 	jsonData
-								// );
+								const postData = {
+									token_id: "test",
+									access_time: accessDate.getTime(),
+									accessor: subjectDomain + "/" + subjectAccount,
+									event_data: jsonData,
+								};
+
+								fetch("http://"+config.serverIP+":3000/api/alerts", {
+									method: "POST",
+									headers: {
+										"Content-Type": "application/json",
+									},
+									body: JSON.stringify(postData),
+								})
+									.then((response) => {
+										if (!response.ok) {
+											throw new Error(`HTTP error! status: ${response.status}`);
+										}
+										return response.json();
+									})
+									.then((data) => {
+										console.log("Successfully posted alert:", data);
+									})
+									.catch((error) => {
+										console.error("Error posting alert:", error);
+									});
 							}
 						} else this.not_first_log = true;
 					}
