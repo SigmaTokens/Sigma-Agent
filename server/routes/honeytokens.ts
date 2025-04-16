@@ -1,17 +1,15 @@
-import { Router, Express } from "express";
+import { Router, Express } from 'express';
 
-import { v4 as uuidv4 } from "uuid";
-import * as fs from "fs";
-import * as path from "path";
-import { Honeytoken_Text } from "../classes/Honeytoken_Text";
-import { Globals } from "../globals";
+import { v4 as uuidv4 } from 'uuid';
+import * as fs from 'fs';
+import * as path from 'path';
+import { Honeytoken_Text } from '../classes/Honeytoken_Text';
+import { Globals } from '../globals';
 
-export function serveHoneytokens(
-  app: Express
-) {
+export function serveHoneytokens(app: Express) {
   const router = Router();
-  
-  router.post("/honeytoken/text", (req, res) => {
+
+  router.post('/honeytoken/text', (req, res) => {
     try {
       /*
         TODO: 
@@ -29,12 +27,12 @@ export function serveHoneytokens(
       const newToken = new Honeytoken_Text(
         uuidv4(),
         uuidv4(),
-        "text",
+        'text',
         expiration_date,
         grade,
         notes,
         location,
-        file_name
+        file_name,
       );
 
       Globals.tokens.push(newToken);
@@ -55,5 +53,5 @@ export function serveHoneytokens(
     }
   });
 
-  app.use("/api", router);
+  app.use('/api', router);
 }

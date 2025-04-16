@@ -1,20 +1,20 @@
-import { exec } from 'child_process'
-import { Constants } from '../constants'
+import { exec } from 'child_process';
+import { Constants } from '../constants';
 
 export function getPlatform(): NodeJS.Platform {
-  return process.platform
+  return process.platform;
 }
 
 export function isLinux(): boolean {
-  return process.platform === 'linux'
+  return process.platform === 'linux';
 }
 
 export function isWindows(): boolean {
-  return process.platform === 'win32'
+  return process.platform === 'win32';
 }
 
 export function isMac(): boolean {
-  return process.platform === 'darwin'
+  return process.platform === 'darwin';
 }
 
 export async function windows_enable_auditing() {
@@ -25,14 +25,14 @@ export async function windows_enable_auditing() {
         console.error(
           Constants.TEXT_RED_COLOR,
           `Error enabling audit policy: ${error}`,
-        )
-        process.exit(1)
+        );
+        process.exit(1);
       }
       console.log(
         Constants.TEXT_GREEN_COLOR,
         'Audit Object Access enabled:',
         stdout,
-      )
+      );
     },
-  )
+  );
 }
