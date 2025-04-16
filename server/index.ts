@@ -4,7 +4,7 @@ import { Globals } from './globals';
 import { isAdmin } from './utilities/auth';
 import { Constants } from './constants';
 import { isWindows, windows_enable_auditing, isMac } from './utilities/host';
-import { serveHoneytokens } from './routes/honeytokens';
+import { serveAgent } from './routes/agent';
 
 main();
 
@@ -23,7 +23,7 @@ function main(): void {
     }
     init()
       .then(() => {
-        serveHoneytokens(app);
+        serveAgent(app);
         Globals.app = app;
 
         app.listen(port, () => {
@@ -43,26 +43,4 @@ async function init() {
   } else if (isMac()) {
     console.log('Running on Mac');
   }
-}
-
-import { Honeytoken_Text } from './classes/Honeytoken_Text';
-
-function test_honeytoken(): void {
-  let location = 'C:\\Users\\Ovadya-PC\\Desktop';
-  let file_name = 'test.txt';
-  if (isMac()) {
-    location = '/Users/sh/Desktop/';
-    file_name = 'a.txt';
-  }
-  let ht_t = new Honeytoken_Text(
-    '1',
-    '1',
-    'text',
-    new Date(),
-    5,
-    'help',
-    location,
-    file_name,
-  );
-  ht_t.startAgent();
 }

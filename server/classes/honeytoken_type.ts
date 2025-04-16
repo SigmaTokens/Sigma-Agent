@@ -1,10 +1,11 @@
 import { HoneytokenType } from '../interfaces/type';
-import { Honeytoken } from './Honeytoken';
-import { Monitor_Text } from './Monitor_Text';
+import { Honeytoken } from './honeytoken';
+import { Monitor_Text } from './monitor_type';
 
 export class Honeytoken_Text extends Honeytoken {
-  file_name: string;
   location: string;
+  file_name: string;
+  notes: string;
   agent: Monitor_Text;
 
   constructor(
@@ -17,10 +18,18 @@ export class Honeytoken_Text extends Honeytoken {
     location: string,
     file_name: string,
   ) {
-    super(token_id, group_id, type, expirationDate, grade, notes);
+    super(token_id, group_id, type, expirationDate, grade);
     this.location = location;
     this.file_name = file_name;
+    this.notes = notes;
     this.agent = new Monitor_Text(this.location + '\\' + this.file_name, this);
+  }
+
+  getNotes(): string {
+    return this.notes!;
+  }
+  setNotes(notes: string): void {
+    this.notes = notes;
   }
 
   startAgent(): void {
