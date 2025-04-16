@@ -95,7 +95,7 @@ function setup_prettier_config(rootDir) {
     "singleQuote": true,
     "trailingComma": "all",
     "tabWidth": 2,
-    "semi": false
+    "semi": true
   }`
 
   const prettierIgnore = `node_modules
