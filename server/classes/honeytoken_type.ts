@@ -28,6 +28,7 @@ export class Honeytoken_Text extends Honeytoken {
   getNotes(): string {
     return this.notes!;
   }
+
   setNotes(notes: string): void {
     this.notes = notes;
   }
@@ -43,6 +44,7 @@ export class Honeytoken_Text extends Honeytoken {
   getFileName(): string {
     return this.file_name;
   }
+
   getLocation(): string {
     return this.location;
   }

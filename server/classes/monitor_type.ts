@@ -13,7 +13,6 @@ export class Monitor_Text extends Monitor {
   token: Honeytoken_Text;
   last_access_time: Date;
   not_first_log: boolean;
-  fsUsageProcess: any; // To store the fs_usage process
 
   constructor(file: string, token: Honeytoken_Text) {
     super();

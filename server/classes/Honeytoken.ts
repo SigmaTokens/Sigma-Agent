@@ -28,27 +28,35 @@ export abstract class Honeytoken implements I_Honeytoken {
   getTokenID(): string {
     return this.token_id;
   }
+
   getGroupID(): string {
     return this.group_id;
   }
+
   getType(): HoneytokenType {
     return this.type;
   }
+
   getCreationDate(): Date {
     return this.creationDate!;
   }
+
   setCreationDate(creationDate: Date): void {
     this.creationDate = creationDate;
   }
+
   getExpirationDate(): Date {
     return this.expirationDate!;
   }
+
   setExpirationDate(expirationDate: Date): void {
     this.expirationDate = expirationDate;
   }
+
   isExpired(): boolean {
     return this.expirationDate! < new Date();
   }
+
   isTriggered(): boolean {
     //TODO: implement db request through alerts
     throw new Error('Method not implemented.');

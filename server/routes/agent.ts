@@ -11,13 +11,12 @@ export function serveAgent(app: Express) {
 
   //temp-desc: request's body should have honeytoken's: metadata, type, location
   router.post('agent/honeytoken/add', (req, res) => {
-    const { file_name, location, grade, expiration_date, data, notes } =
-      req.body;
+    const { metadata, file_name, location, grade, expiration_date } = req.body;
   });
 
   //temp-desc: request's body should have honeytoken's: metadata, type, location
   router.post('agent/honeytoken/remove', (req, res) => {
-    const { file_name, location, data, notes } = req.body;
+    const { metadata, file_name, location } = req.body;
   });
 
   app.use('/api', router);
