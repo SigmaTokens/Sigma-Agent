@@ -8,6 +8,7 @@ export abstract class Honeytoken implements I_Honeytoken {
   creationDate: Date;
   expirationDate: Date;
   grade: number;
+  notes: string;
 
   constructor(
     token_id: string,
@@ -15,14 +16,15 @@ export abstract class Honeytoken implements I_Honeytoken {
     type: HoneytokenType,
     expirationDate: Date,
     grade: number,
+    notes: string,
   ) {
     this.token_id = token_id;
     this.group_id = group_id;
     this.type = type;
     this.creationDate = new Date();
-    // TODO: if expiration date is initial - add 30 days from today
     this.expirationDate = expirationDate;
     this.grade = grade;
+    this.notes = notes;
   }
 
   getTokenID(): string {
@@ -58,11 +60,18 @@ export abstract class Honeytoken implements I_Honeytoken {
   }
 
   isTriggered(): boolean {
-    //TODO: implement db request through alerts
     throw new Error('Method not implemented.');
   }
 
   getGrade(): number {
     return this.grade;
+  }
+
+  getNotes(): string {
+    return this.notes!;
+  }
+
+  setNotes(notes: string): void {
+    this.notes = notes;
   }
 }

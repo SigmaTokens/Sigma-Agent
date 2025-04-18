@@ -9,60 +9,84 @@ import { Globals } from '../globals';
 export function serveAgent(app: Express) {
   const router = Router();
 
-  //temp-desc: request's body should have honeytoken's: metadata, type, location
   router.post('agent/honeytoken/add', (req, res) => {
-    const { metadata, file_name, location, grade, expiration_date } = req.body;
+    try {
+      console.log(req.body);
+      const { type, file_name, location, grade, expiration_date, notes, data } =
+        req.body;
+
+      let newToken = null;
+
+      if (type === 'text')
+        newToken = new Honeytoken_Text(
+          uuidv4(),
+          uuidv4(),
+          type,
+          expiration_date,
+          grade,
+          notes,
+          location,
+          file_name,
+        );
+
+      if (newToken) {
+        Globals.tokens.push(newToken);
+
+        const filePath = path.join(location, file_name);
+
+        if (!fs.existsSync(filePath)) {
+          fs.writeFileSync(filePath, data);
+        }
+
+        newToken.startAgent();
+
+        res.send().status(200);
+        return;
+      }
+      res.status(500).json({ failure: 'failed to add token' });
+      return;
+    } catch (error: any) {
+      res.status(500).json({ failure: error.message });
+      return;
+    }
   });
 
-  //temp-desc: request's body should have honeytoken's: metadata, type, location
   router.post('agent/honeytoken/remove', (req, res) => {
-    const { metadata, file_name, location } = req.body;
+    try {
+      console.log(req.body);
+      const { token_id } = req.body;
+
+      let token_to_remove = null;
+
+      for (let i = 0; i < Globals.tokens.length; i++)
+        if (Globals.tokens[i].getTokenID() === token_id)
+          token_to_remove = Globals.tokens[i];
+
+      if (token_to_remove && token_to_remove.getType() === 'text') {
+        try {
+          const token = token_to_remove as Honeytoken_Text;
+
+          const fullPath = path.join(token.getLocation(), token.getFileName());
+
+          if (fs.existsSync(fullPath)) {
+            fs.unlinkSync(fullPath);
+            console.log(`Deleted honeytoken file: ${fullPath}`);
+          }
+        } catch (error) {
+          console.error(`Error during token deletion: ${error}`);
+        }
+
+        res.send().status(200);
+        return;
+      }
+
+      res.status(500).json({ failure: 'failed to remove token' });
+      return;
+    } catch (error: any) {
+      res.status(500).json({ failure: error.message });
+      return;
+    }
   });
 
   app.use('/api', router);
 }
-
-//desc: dummy adding text honeytoken poc endpoint
-// router.post('agent/honeytoken/text', (req, res) => {
-//   try {
-//     /*
-//         TODO:
-//         1. check if file name is initial - create a name from a list
-//         2. check if content is initial - create content from a list - optional ?
-//         3. check if location is initial or does not exist - send error
-//         4. create Honeytoken to array in globals.ts
-//         5. write the honeytoken to the database
-// 		6. create mapping for HoneytokenType
-//       */
-//     console.log(req.body);
-//     const { file_name, location, grade, expiration_date, data, notes } =
-//       req.body;
-
-//     const newToken = new Honeytoken_Text(
-//       uuidv4(),
-//       uuidv4(),
-//       'text',
-//       expiration_date,
-//       grade,
-//       location,
-//       file_name,
-//       notes,
-//     );
-
-//     Globals.tokens.push(newToken);
-
-//     //TODO: check if file exists - if not - create it using createFile in Honeytoken_Text.ts
-
-//     const filePath = path.join(location, file_name);
-
-//     if (!fs.existsSync(filePath)) {
-//       fs.writeFileSync(filePath, data);
-//     }
-
-//     newToken.startAgent();
-
-//     res.send().status(200);
-//   } catch (error: any) {
-//     res.status(500).json({ failure: error.message });
-//   }
-// });
