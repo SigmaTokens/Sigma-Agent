@@ -1,1 +1,7 @@
-export type HoneytokenType = "text" | "ssh" | "db" | "network-share" | "log" | "api";
+export type HoneytokenType =
+  | 'text'
+  | 'ssh'
+  | 'db'
+  | 'network-share'
+  | 'log'
+  | 'api';
