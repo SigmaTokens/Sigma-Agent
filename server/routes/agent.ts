@@ -5,12 +5,18 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Honeytoken_Text } from '../classes/honeytoken_type';
 import { Globals } from '../globals';
+import { isFromManager } from '../utilities/auth';
 
 export function serveAgent(app: Express) {
   const router = Router();
 
   router.post('agent/honeytoken/add', (req, res) => {
     try {
+      const origin = req.get('origin') || '';
+      if (!isFromManager(origin)) {
+        res.status(500).json({ failure: 'not requested by the manager!' });
+        return;
+      }
       console.log(req.body);
       const { type, file_name, location, grade, expiration_date, notes, data } =
         req.body;
@@ -53,6 +59,12 @@ export function serveAgent(app: Express) {
 
   router.post('agent/honeytoken/remove', (req, res) => {
     try {
+      const origin = req.get('origin') || '';
+      if (!isFromManager(origin)) {
+        res.status(500).json({ failure: 'not requested by the manager!' });
+        return;
+      }
+
       console.log(req.body);
       const { token_id } = req.body;
 
