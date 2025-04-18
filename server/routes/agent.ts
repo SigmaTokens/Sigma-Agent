@@ -3,7 +3,7 @@ import { Router, Express } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Honeytoken_Text } from '../classes/honeytoken_type';
+import { Honeytoken_Text } from '../classes/honeytoken_text';
 import { Globals } from '../globals';
 import { isFromManager } from '../utilities/auth';
 

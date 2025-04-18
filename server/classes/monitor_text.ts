@@ -5,7 +5,7 @@ import { Constants } from '../constants';
 import { isWindows, isMac, isLinux } from '../utilities/host';
 import { stderr } from 'process';
 import { sleep } from '../utilities/utilities';
-import { Honeytoken_Text } from './honeytoken_type';
+import { Honeytoken_Text } from './honeytoken_text';
 const config = require('./config.json');
 
 export class Monitor_Text extends Monitor {
@@ -22,7 +22,7 @@ export class Monitor_Text extends Monitor {
     this.not_first_log = false;
   }
 
-  async monitor() {
+  async start_monitor() {
     if (isWindows()) {
       this.monitorWindows();
     } else if (isMac()) {
@@ -31,6 +31,8 @@ export class Monitor_Text extends Monitor {
       this.monitorLinux();
     }
   }
+
+  async stop_monitor() {}
 
   // -------- WINDOWS --------
   async monitorWindows() {

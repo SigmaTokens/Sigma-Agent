@@ -1,3 +1,4 @@
 export interface I_HoneytokenMonitor {
-  monitor(): void;
+  start_monitor(): void;
+  stop_monitor(): void;
 }
