@@ -100,5 +100,9 @@ export function serveAgent(app: Express) {
     }
   });
 
+  router.post('agent/monitor/start', (req, res) => {});
+
+  router.post('agent/monitor/stop', (req, res) => {});
+
   app.use('/api', router);
 }
