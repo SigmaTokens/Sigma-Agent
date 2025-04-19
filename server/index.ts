@@ -4,7 +4,7 @@ import { Globals } from './globals';
 import { isAdmin } from './utilities/auth';
 import { Constants } from './constants';
 import { isWindows, windows_enable_auditing, isMac } from './utilities/host';
-import { serveAgent } from './routes/agent';
+import { serveAgent } from './routes/honeytoken';
 
 main();
 
@@ -15,6 +15,7 @@ function main(): void {
   app.use(express.urlencoded({ extended: true }));
   require('dotenv').config();
   const port = process.env.PORT || 9007;
+  Globals.app = app;
 
   isAdmin().then((isAdmin) => {
     if (!isAdmin) {
@@ -23,8 +24,7 @@ function main(): void {
     }
     init()
       .then(() => {
-        serveAgent(app);
-        Globals.app = app;
+        serveAgent();
 
         app.listen(port, () => {
           console.log(`[+] Server running on port ${port}`);

@@ -1,5 +1,4 @@
-import { Router, Express } from 'express';
-
+import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -7,7 +6,7 @@ import { Honeytoken_Text } from '../classes/honeytoken_text';
 import { Globals } from '../globals';
 import { isFromManager } from '../utilities/auth';
 
-export function serveAgent(app: Express) {
+export function serveAgent() {
   const router = Router();
 
   router.post('/honeytoken/add', (req, res) => {
@@ -104,5 +103,5 @@ export function serveAgent(app: Express) {
 
   router.post('/monitor/stop', (req, res) => {});
 
-  app.use('/api', router);
+  Globals.app.use('/api', router);
 }
