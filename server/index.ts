@@ -11,9 +11,9 @@ main();
 function main(): void {
   const app = express();
   app.use(express.json());
-
   app.use(cors());
   app.use(express.urlencoded({ extended: true }));
+  require('dotenv').config();
   const port = process.env.PORT || 9007;
 
   isAdmin().then((isAdmin) => {

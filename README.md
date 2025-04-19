@@ -2,6 +2,14 @@
 
 ## How to run the application
 
+### .env file
+
+Please create a `.env` file with the contents:
+
+```
+    SERVER_IP=<Manager Application IP>
+```
+
 ### Production
 
 To run the project in production, run the following command:

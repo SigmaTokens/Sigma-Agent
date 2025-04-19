@@ -5,7 +5,6 @@ import { Constants } from '../constants';
 import { isWindows, isMac, isLinux } from '../utilities/host';
 import { sleep } from '../utilities/utilities';
 import { Honeytoken_Text } from './honeytoken_text';
-const config = require('../config.json');
 
 export class Monitor_Text extends Monitor {
   file: string;
@@ -111,7 +110,7 @@ export class Monitor_Text extends Monitor {
                   event_data: jsonData,
                 };
 
-                fetch('http://' + config.serverIP + ':3000/api/alerts', {
+                fetch('http://' + process.env.SERVER_IP + ':3000/api/alerts', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -201,7 +200,7 @@ export class Monitor_Text extends Monitor {
               event_data: jsonData,
             };
 
-            fetch(`http://${config.serverIP}:3000/api/alerts`, {
+            fetch(`http://${process.env.SERVER_IP}:3000/api/alerts`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -315,7 +314,7 @@ export class Monitor_Text extends Monitor {
                 event_data: JSON.stringify(latestEvent, null, 2),
               };
 
-              fetch(`http://${config.serverIP}:3000/api/alerts`, {
+              fetch(`http://${process.env.SERVER_IP}:3000/api/alerts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(postData),
