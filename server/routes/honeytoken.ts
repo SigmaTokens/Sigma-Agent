@@ -10,7 +10,7 @@ import { isFromManager } from '../utilities/auth';
 export function serveAgent(app: Express) {
   const router = Router();
 
-  router.post('agent/honeytoken/add', (req, res) => {
+  router.post('/honeytoken/add', (req, res) => {
     try {
       const origin = req.get('origin') || '';
       if (!isFromManager(origin)) {
@@ -57,7 +57,7 @@ export function serveAgent(app: Express) {
     }
   });
 
-  router.post('agent/honeytoken/remove', (req, res) => {
+  router.post('/honeytoken/remove', (req, res) => {
     try {
       const origin = req.get('origin') || '';
       if (!isFromManager(origin)) {
@@ -100,9 +100,9 @@ export function serveAgent(app: Express) {
     }
   });
 
-  router.post('agent/monitor/start', (req, res) => {});
+  router.post('/monitor/start', (req, res) => {});
 
-  router.post('agent/monitor/stop', (req, res) => {});
+  router.post('/monitor/stop', (req, res) => {});
 
   app.use('/api', router);
 }
