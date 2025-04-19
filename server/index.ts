@@ -23,7 +23,7 @@ function main(): void {
     }
     init()
       .then(() => {
-        serveHoneytoken(app);
+        serveHoneytoken();
         Globals.app = app;
 
         app.listen(port, () => {
