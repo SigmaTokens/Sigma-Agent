@@ -1,12 +1,11 @@
 import fs from 'fs';
-import { Monitor } from './monitor';
+import { Monitor } from './Monitor';
 import { exec } from 'child_process';
 import { Constants } from '../constants';
 import { isWindows, isMac, isLinux } from '../utilities/host';
-import { stderr } from 'process';
 import { sleep } from '../utilities/utilities';
 import { Honeytoken_Text } from './honeytoken_text';
-const config = require('./config.json');
+const config = require('../config.json');
 
 export class Monitor_Text extends Monitor {
   file: string;
