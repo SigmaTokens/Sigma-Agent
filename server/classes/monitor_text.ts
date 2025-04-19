@@ -102,6 +102,7 @@ export class Monitor_Text extends Monitor {
 
                 // TODO: check whether the last alert doesn't already exists in the db
                 // TODO: replace the "test" with actual stuff
+                //good points, will tend to fix till Monday!
                 console.log('Token was accessed:', subjectAccount);
                 const postData = {
                   token_id: 'test',
@@ -223,9 +224,6 @@ export class Monitor_Text extends Monitor {
   }
 
   parse_auditd_log_linux(log: string): any {
-    // Example log format:
-    // time->Thu Sep 15 14:30:00 2023
-    // type=SYSCALL msg=audit(1694781000.123:456): arch=c000003e syscall=2 success=yes ...
     const result: any = {};
 
     log.split('\n').forEach((line) => {
@@ -254,9 +252,9 @@ export class Monitor_Text extends Monitor {
 
   async enable_fsevents_mac() {
     const command =
-      `sudo touch ${this.file} && ` + // Ensure file exists
-      `sudo chmod 444 ${this.file} && ` + // Make read-only
-      `sudo log config --mode "private_data:on" && ` + // Enable private data logging
+      `sudo touch ${this.file} && ` +
+      `sudo chmod 444 ${this.file} && ` +
+      `sudo log config --mode "private_data:on" && ` +
       `sudo log config --subsystem "com.apple.fseventsd" --mode "level:debug"`;
 
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {

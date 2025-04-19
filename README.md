@@ -4,11 +4,7 @@
 
 ### .env file
 
-Please create a `.env` file with the contents:
-
-```
-    SERVER_IP=<Manager Application IP>
-```
+Currently we store there the manager's server's IP and port.
 
 ### Production
 

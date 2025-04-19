@@ -4,7 +4,7 @@ import { Globals } from './globals';
 import { isAdmin } from './utilities/auth';
 import { Constants } from './constants';
 import { isWindows, windows_enable_auditing, isMac } from './utilities/host';
-import { serveAgent } from './routes/agent';
+import { serveHoneytoken } from './routes/honeytoken';
 
 main();
 
@@ -23,7 +23,7 @@ function main(): void {
     }
     init()
       .then(() => {
-        serveAgent(app);
+        serveHoneytoken(app);
         Globals.app = app;
 
         app.listen(port, () => {
