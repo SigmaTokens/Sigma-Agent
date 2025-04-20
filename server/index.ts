@@ -23,10 +23,10 @@ function main(): void {
     }
     init()
       .then(() => {
-        serveHoneytoken();
         Globals.app = app;
+        serveHoneytoken();
 
-        app.listen(port, () => {
+        Globals.app.listen(port, () => {
           console.log(`[+] Server running on port ${port}`);
         });
       })

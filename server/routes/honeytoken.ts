@@ -48,8 +48,6 @@ export function serveHoneytoken() {
 
         const filePath = path.join(location, file_name);
 
-        console.log(filePath);
-
         if (!fs.existsSync(filePath)) {
           fs.writeFileSync(filePath, data);
         }

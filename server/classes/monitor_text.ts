@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { Monitor } from './Monitor';
+import { Monitor } from './monitor';
 import { exec } from 'child_process';
 import { Constants } from '../constants';
 import { isWindows, isMac, isLinux } from '../utilities/host';
@@ -93,6 +93,8 @@ export class Monitor_Text extends Monitor {
             const accessDate =
               this.extract_access_date_from_event_windows(eventData);
             if (accessDate > this.last_access_time) {
+              //Globals.alerts
+              //if new_alert is in Global.alerts - then skip
               this.last_access_time = accessDate;
               if (this.not_first_log) {
                 const jsonData = JSON.stringify(eventData, null, 2);
@@ -100,15 +102,12 @@ export class Monitor_Text extends Monitor {
                 const subjectAccount = eventData.Properties[1].Value;
                 const subjectDomain = eventData.Properties[2].Value;
 
-                // TODO: check whether the last alert doesn't already exists in the db
-                // TODO: replace the "test" with actual stuff
-                //good points, will tend to fix till Monday!
                 console.log('Token was accessed:', subjectAccount);
                 const postData = {
-                  token_id: 'test',
-                  access_time: accessDate.getTime(),
-                  accessor: subjectDomain + '/' + subjectAccount,
-                  event_data: jsonData,
+                  token_id: this.token.token_id,
+                  alert_epoch: accessDate.getTime(),
+                  accessed_by: subjectDomain + '/' + subjectAccount,
+                  log: jsonData,
                 };
 
                 fetch('http://' + process.env.SERVER_IP + ':3000/api/alerts', {
