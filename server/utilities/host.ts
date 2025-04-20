@@ -38,13 +38,18 @@ export async function windows_enable_auditing() {
 }
 
 export async function windows_enable_ping() {
-  const psCommand = `New-NetFirewallRule \
-                                    -DisplayName "Allow ICMP" \
-                                    -Direction Inbound \
-                                    -Protocol ICMPv4 \
-                                    -IcmpType 8 \
-                                    -Action Allow \
-                                    -Profile Any`;
+  const psCommand =
+    `
+    Import-Module NetSecurity;
+    if (-not (Get-NetFirewallRule -DisplayName "Allow ICMP" -ErrorAction SilentlyContinue)) {
+      New-NetFirewallRule -DisplayName "Allow ICMP" ` +
+    `-Direction Inbound -Protocol ICMPv4 -IcmpType 8 -Action Allow -Profile Any;
+    } else {
+      Set-NetFirewallRule -DisplayName "Allow ICMP" -Enabled True;
+    }
+    # also enable the built-in ping rule
+    Enable-NetFirewallRule -Name "FPS-ICMP4-ERQ-In";
+  `;
 
   exec(
     `powershell.exe -NoProfile -Command '${psCommand}'`,
@@ -53,12 +58,12 @@ export async function windows_enable_ping() {
       if (error) {
         console.error(
           Constants.TEXT_RED_COLOR,
-          'Couldn’t enable ICMP ping on host',
+          "Couldn't enable ICMP ping on host",
           error,
         );
       } else {
-        console.log(Constants.TEXT_GREEN_COLOR, stdout, stderr);
-        console.log(Constants.TEXT_GREEN_COLOR, 'Enabled ICMP ping on host');
+        //console.log(Constants.TEXT_GREEN_COLOR, stdout.trim());
+        console.log(Constants.TEXT_GREEN_COLOR, 'ICMP ping enabled');
       }
     },
   );
