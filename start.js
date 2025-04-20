@@ -6,6 +6,10 @@ import path from 'path';
 main();
 
 function main() {
+  if (!isAdmin()) {
+    console.error('[-] Error: must run as admin!');
+    process.exit(-1);
+  }
   const mode = get_mode();
   if (mode === 'dev') {
     const root_dir = get_root_dir();
@@ -15,6 +19,17 @@ function main() {
   }
   install_deps();
   run_sigmatokens(mode);
+}
+
+function isAdmin() {
+  try {
+    if (process.platform === 'win32') {
+      execSync('net session >nul 2>&1');
+      return true;
+    } else return process.geteuid && process.geteuid() === 0;
+  } catch (e) {
+    return false;
+  }
 }
 
 function get_mode() {

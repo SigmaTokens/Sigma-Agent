@@ -3,10 +3,8 @@ import { Monitor } from './monitor';
 import { exec } from 'child_process';
 import { Constants } from '../constants';
 import { isWindows, isMac, isLinux } from '../utilities/host';
-import { stderr } from 'process';
 import { sleep } from '../utilities/utilities';
-import { Honeytoken_Text } from './honeytoken_type';
-const config = require('./config.json');
+import { Honeytoken_Text } from './honeytoken_text';
 
 export class Monitor_Text extends Monitor {
   file: string;
@@ -22,7 +20,7 @@ export class Monitor_Text extends Monitor {
     this.not_first_log = false;
   }
 
-  async monitor() {
+  async start_monitor() {
     if (isWindows()) {
       this.monitorWindows();
     } else if (isMac()) {
@@ -31,6 +29,8 @@ export class Monitor_Text extends Monitor {
       this.monitorLinux();
     }
   }
+
+  async stop_monitor() {}
 
   // -------- WINDOWS --------
   async monitorWindows() {
@@ -93,6 +93,8 @@ export class Monitor_Text extends Monitor {
             const accessDate =
               this.extract_access_date_from_event_windows(eventData);
             if (accessDate > this.last_access_time) {
+              //Globals.alerts
+              //if new_alert is in Global.alerts - then skip
               this.last_access_time = accessDate;
               if (this.not_first_log) {
                 const jsonData = JSON.stringify(eventData, null, 2);
@@ -100,17 +102,15 @@ export class Monitor_Text extends Monitor {
                 const subjectAccount = eventData.Properties[1].Value;
                 const subjectDomain = eventData.Properties[2].Value;
 
-                // TODO: check whether the last alert doesn't already exists in the db
-                // TODO: replace the "test" with actual stuff
                 console.log('Token was accessed:', subjectAccount);
                 const postData = {
-                  token_id: 'test',
-                  access_time: accessDate.getTime(),
-                  accessor: subjectDomain + '/' + subjectAccount,
-                  event_data: jsonData,
+                  token_id: this.token.token_id,
+                  alert_epoch: accessDate.getTime(),
+                  accessed_by: subjectDomain + '/' + subjectAccount,
+                  log: jsonData,
                 };
 
-                fetch('http://' + config.serverIP + ':3000/api/alerts', {
+                fetch('http://' + process.env.SERVER_IP + ':3000/api/alerts', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -200,7 +200,7 @@ export class Monitor_Text extends Monitor {
               event_data: jsonData,
             };
 
-            fetch(`http://${config.serverIP}:3000/api/alerts`, {
+            fetch(`http://${process.env.SERVER_IP}:3000/api/alerts`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -223,9 +223,6 @@ export class Monitor_Text extends Monitor {
   }
 
   parse_auditd_log_linux(log: string): any {
-    // Example log format:
-    // time->Thu Sep 15 14:30:00 2023
-    // type=SYSCALL msg=audit(1694781000.123:456): arch=c000003e syscall=2 success=yes ...
     const result: any = {};
 
     log.split('\n').forEach((line) => {
@@ -254,9 +251,9 @@ export class Monitor_Text extends Monitor {
 
   async enable_fsevents_mac() {
     const command =
-      `sudo touch ${this.file} && ` + // Ensure file exists
-      `sudo chmod 444 ${this.file} && ` + // Make read-only
-      `sudo log config --mode "private_data:on" && ` + // Enable private data logging
+      `sudo touch ${this.file} && ` +
+      `sudo chmod 444 ${this.file} && ` +
+      `sudo log config --mode "private_data:on" && ` +
       `sudo log config --subsystem "com.apple.fseventsd" --mode "level:debug"`;
 
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
@@ -314,7 +311,7 @@ export class Monitor_Text extends Monitor {
                 event_data: JSON.stringify(latestEvent, null, 2),
               };
 
-              fetch(`http://${config.serverIP}:3000/api/alerts`, {
+              fetch(`http://${process.env.SERVER_IP}:3000/api/alerts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(postData),

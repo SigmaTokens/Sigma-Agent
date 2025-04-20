@@ -4,16 +4,16 @@ import { Globals } from './globals';
 import { isAdmin } from './utilities/auth';
 import { Constants } from './constants';
 import { isWindows, windows_enable_auditing, isMac } from './utilities/host';
-import { serveAgent } from './routes/agent';
+import { serveHoneytoken } from './routes/honeytoken';
 
 main();
 
 function main(): void {
   const app = express();
   app.use(express.json());
-
   app.use(cors());
   app.use(express.urlencoded({ extended: true }));
+  require('dotenv').config();
   const port = process.env.PORT || 9007;
 
   isAdmin().then((isAdmin) => {
@@ -23,10 +23,10 @@ function main(): void {
     }
     init()
       .then(() => {
-        serveAgent(app);
         Globals.app = app;
+        serveHoneytoken();
 
-        app.listen(port, () => {
+        Globals.app.listen(port, () => {
           console.log(`[+] Server running on port ${port}`);
         });
       })

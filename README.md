@@ -2,6 +2,10 @@
 
 ## How to run the application
 
+### .env file
+
+Currently we store there the manager's server's IP and port.
+
 ### Production
 
 To run the project in production, run the following command:

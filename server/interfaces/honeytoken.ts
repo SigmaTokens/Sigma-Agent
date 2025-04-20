@@ -9,13 +9,3 @@ export interface I_Honeytoken {
   isExpired(): boolean;
   isTriggered(): boolean;
 }
-
-export interface I_HoneytokenManager {
-  createTokens(token_type: HoneytokenType, numOfTokens: number): void;
-  deleteTokens(groupID: string): void;
-}
-
-export interface I_HoneytokenScatter {
-  manualPlacement(tokens: I_Honeytoken[], where: any): void;
-  autoPlacement(tokens: I_Honeytoken[]): void;
-}

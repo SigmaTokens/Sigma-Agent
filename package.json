@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "cross-env": "^7.0.3",
+    "dotenv": "^16.5.0",
     "uuid": "^11.1.0"
   }
 }

@@ -1,6 +1,6 @@
 import { HoneytokenType } from '../interfaces/type';
 import { Honeytoken } from './honeytoken';
-import { Monitor_Text } from './monitor_type';
+import { Monitor_Text } from './monitor_text';
 import fs from 'fs';
 import path from 'path';
 
@@ -52,6 +52,10 @@ export class Honeytoken_Text extends Honeytoken {
   }
 
   startAgent(): void {
-    this.agent.monitor();
+    this.agent.start_monitor();
+  }
+
+  stopAgent(): void {
+    this.agent.stop_monitor();
   }
 }

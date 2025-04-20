@@ -1,32 +1,40 @@
-import { Router, Express } from 'express';
+import { Router } from 'express';
 
-import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Honeytoken_Text } from '../classes/honeytoken_type';
+import { Honeytoken_Text } from '../classes/honeytoken_text';
 import { Globals } from '../globals';
 import { isFromManager } from '../utilities/auth';
 
-export function serveAgent(app: Express) {
+export function serveHoneytoken() {
   const router = Router();
 
-  router.post('agent/honeytoken/add', (req, res) => {
+  router.post('/honeytoken/add', (req, res) => {
     try {
       const origin = req.get('origin') || '';
       if (!isFromManager(origin)) {
         res.status(500).json({ failure: 'not requested by the manager!' });
         return;
       }
-      console.log(req.body);
-      const { type, file_name, location, grade, expiration_date, notes, data } =
-        req.body;
+      console.log({ received_data: req.body });
+      const {
+        token_id,
+        group_id,
+        type,
+        file_name,
+        location,
+        grade,
+        expiration_date,
+        notes,
+        data,
+      } = req.body;
 
-      let newToken = null;
+      let received_token = null;
 
       if (type === 'text')
-        newToken = new Honeytoken_Text(
-          uuidv4(),
-          uuidv4(),
+        received_token = new Honeytoken_Text(
+          token_id,
+          group_id,
           type,
           expiration_date,
           grade,
@@ -35,8 +43,8 @@ export function serveAgent(app: Express) {
           file_name,
         );
 
-      if (newToken) {
-        Globals.tokens.push(newToken);
+      if (received_token) {
+        Globals.tokens.push(received_token);
 
         const filePath = path.join(location, file_name);
 
@@ -44,9 +52,11 @@ export function serveAgent(app: Express) {
           fs.writeFileSync(filePath, data);
         }
 
-        newToken.startAgent();
+        received_token.startAgent();
 
-        res.send().status(200);
+        res
+          .status(200)
+          .json({ success: 'honeytoken has been deployed and monitored!' });
         return;
       }
       res.status(500).json({ failure: 'failed to add token' });
@@ -57,7 +67,7 @@ export function serveAgent(app: Express) {
     }
   });
 
-  router.post('agent/honeytoken/remove', (req, res) => {
+  router.post('/honeytoken/remove', (req, res) => {
     try {
       const origin = req.get('origin') || '';
       if (!isFromManager(origin)) {
@@ -100,5 +110,5 @@ export function serveAgent(app: Express) {
     }
   });
 
-  app.use('/api', router);
+  Globals.app.use('/api', router);
 }
