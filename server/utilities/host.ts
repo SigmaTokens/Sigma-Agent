@@ -57,6 +57,7 @@ export async function windows_enable_ping() {
           error,
         );
       } else {
+        console.log(Constants.TEXT_GREEN_COLOR, stdout, stderr);
         console.log(Constants.TEXT_GREEN_COLOR, 'Enabled ICMP ping on host');
       }
     },
