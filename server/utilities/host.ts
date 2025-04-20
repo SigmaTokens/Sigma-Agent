@@ -1,4 +1,4 @@
-import { exec } from 'child_process';
+import { exec, execFile } from 'child_process';
 import { Constants } from '../constants';
 
 export function getPlatform(): NodeJS.Platform {
@@ -38,21 +38,19 @@ export async function windows_enable_auditing() {
 }
 
 export async function windows_enable_ping() {
-  const psCommand =
-    `
-    Import-Module NetSecurity;
-    if (-not (Get-NetFirewallRule -DisplayName "Allow ICMP" -ErrorAction SilentlyContinue)) {
-      New-NetFirewallRule -DisplayName "Allow ICMP" ` +
-    `-Direction Inbound -Protocol ICMPv4 -IcmpType 8 -Action Allow -Profile Any;
-    } else {
-      Set-NetFirewallRule -DisplayName "Allow ICMP" -Enabled True;
-    }
-    # also enable the built-in ping rule
-    Enable-NetFirewallRule -Name "FPS-ICMP4-ERQ-In";
-  `;
+  const psScript = [
+    'Import-Module NetSecurity',
+    'if (-not (Get-NetFirewallRule -DisplayName "Allow ICMP" -ErrorAction SilentlyContinue)) {',
+    '  New-NetFirewallRule -DisplayName "Allow ICMP" -Direction Inbound -Protocol ICMPv4 -IcmpType 8 -Action Allow -Profile Any',
+    '} else {',
+    '  Set-NetFirewallRule -DisplayName "Allow ICMP" -Enabled True',
+    '}',
+    'Enable-NetFirewallRule -Name "FPS-ICMP4-ERQ-In"',
+  ].join('; ');
 
-  exec(
-    `powershell.exe -NoProfile -Command '${psCommand}'`,
+  execFile(
+    'powershell.exe',
+    ['-NoProfile', '-Command', psScript],
     { encoding: 'utf8' },
     (error, stdout, stderr) => {
       if (error) {
@@ -62,7 +60,6 @@ export async function windows_enable_ping() {
           error,
         );
       } else {
-        //console.log(Constants.TEXT_GREEN_COLOR, stdout.trim());
         console.log(Constants.TEXT_GREEN_COLOR, 'ICMP ping enabled');
       }
     },
