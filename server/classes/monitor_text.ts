@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { Monitor } from './monitor';
+import { Monitor } from './Monitor';
 import { exec } from 'child_process';
 import { Constants } from '../constants';
 import { isWindows, isMac, isLinux } from '../utilities/host';

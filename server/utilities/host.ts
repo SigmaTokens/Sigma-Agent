@@ -40,7 +40,7 @@ export async function windows_enable_auditing() {
 export async function windows_enable_ping() {
   const psCommand = `New-NetFirewallRule -DisplayName "Allow ICMP" -Protocol ICMPv4 -IcmpType 8 -Enabled True -Action Allow`;
   exec(
-    `powershell.exe -NoProfile -Command "${psCommand}"`,
+    `powershell.exe -NoProfile -Command "${psCommand.replace(/\r?\n/g, ';')}"`,
     { encoding: 'utf8' },
     (error, stdout, stderr) => {
       if (error) {
