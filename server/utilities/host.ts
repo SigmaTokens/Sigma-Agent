@@ -38,15 +38,22 @@ export async function windows_enable_auditing() {
 }
 
 export async function windows_enable_ping() {
-  const psCommand = `New-NetFirewallRule -DisplayName "Allow ICMP" -Protocol ICMPv4 -IcmpType 8 -Enabled True -Action Allow`;
+  const psCommand = `New-NetFirewallRule \
+                                    -DisplayName "Allow ICMP" \
+                                    -Direction Inbound \
+                                    -Protocol ICMPv4 \
+                                    -IcmpType 8 \
+                                    -Action Allow \
+                                    -Profile Any`;
+
   exec(
-    `powershell.exe -NoProfile -Command "${psCommand.replace(/\r?\n/g, ';')}"`,
+    `powershell.exe -NoProfile -Command '${psCommand}'`,
     { encoding: 'utf8' },
     (error, stdout, stderr) => {
       if (error) {
         console.error(
           Constants.TEXT_RED_COLOR,
-          'Couldnt enable ICMP ping on host',
+          'Couldn’t enable ICMP ping on host',
           error,
         );
       } else {
