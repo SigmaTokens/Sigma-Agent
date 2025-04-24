@@ -104,6 +104,18 @@ export class Monitor_Text extends Monitor {
 
                 const subjectAccount = eventData.Properties[1].Value;
                 const subjectDomain = eventData.Properties[2].Value;
+                const accessProgram = eventData.Properties[11].Value;
+                // console.log(Constants.TEXT_YELLOW_COLOR, '---------------');
+                // console.log(eventData);
+                // console.log(Constants.TEXT_YELLOW_COLOR, '---------------');
+                // console.log(accessProgram);
+                // console.log(Constants.TEXT_YELLOW_COLOR, '---------------');
+                if (
+                  Constants.WIN32_EXCLUDE_PROGRAMS_REGEX.test(accessProgram)
+                ) {
+                  //console.log('excluded event');
+                  return;
+                }
 
                 const postData = {
                   token_id: this.token.token_id,
