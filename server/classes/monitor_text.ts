@@ -81,7 +81,10 @@ export class Monitor_Text extends Monitor {
       `powershell.exe -NoProfile -Command "${psCommand.replace(/\r?\n/g, ';')}"`,
       { encoding: 'utf8' },
       (error, stdout, stderr) => {
-        if (error) {
+        if (
+          error &&
+          Constants.NO_EVENTS_REGEX.test((error.stderr ?? '').toString())
+        ) {
           console.error(
             Constants.TEXT_RED_COLOR,
             'Error fetching event:',
@@ -102,7 +105,6 @@ export class Monitor_Text extends Monitor {
                 const subjectAccount = eventData.Properties[1].Value;
                 const subjectDomain = eventData.Properties[2].Value;
 
-                console.log('Token was accessed:', subjectAccount);
                 const postData = {
                   token_id: this.token.token_id,
                   alert_epoch: accessDate.getTime(),
@@ -122,9 +124,6 @@ export class Monitor_Text extends Monitor {
                       throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     return response.json();
-                  })
-                  .then((data) => {
-                    console.log('Successfully posted alert:', data);
                   })
                   .catch((error) => {
                     console.error('Error posting alert:', error);

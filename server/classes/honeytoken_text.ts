@@ -1,5 +1,5 @@
 import { HoneytokenType } from '../interfaces/type';
-import { Honeytoken } from './honeytoken';
+import { Honeytoken } from './Honeytoken';
 import { Monitor_Text } from './monitor_text';
 import fs from 'fs';
 import path from 'path';
