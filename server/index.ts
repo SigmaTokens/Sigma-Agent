@@ -10,6 +10,7 @@ import {
   isMac,
 } from './utilities/host';
 import { serveHoneytoken } from './routes/honeytoken';
+import { serveGeneral } from './routes/general';
 
 main();
 
@@ -29,6 +30,7 @@ function main(): void {
     init()
       .then(() => {
         Globals.app = app;
+        serveGeneral();
         serveHoneytoken();
 
         Globals.app.listen(port, () => {
