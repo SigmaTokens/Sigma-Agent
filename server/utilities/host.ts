@@ -36,32 +36,3 @@ export async function windows_enable_auditing() {
     },
   );
 }
-
-export async function windows_enable_ping() {
-  const psScript = [
-    'Import-Module NetSecurity',
-    'if (-not (Get-NetFirewallRule -DisplayName "Allow ICMP" -ErrorAction SilentlyContinue)) {',
-    '  New-NetFirewallRule -DisplayName "Allow ICMP" -Direction Inbound -Protocol ICMPv4 -IcmpType 8 -Action Allow -Profile Any',
-    '} else {',
-    '  Set-NetFirewallRule -DisplayName "Allow ICMP" -Enabled True',
-    '}',
-    'Enable-NetFirewallRule -Name "FPS-ICMP4-ERQ-In"',
-  ].join('; ');
-
-  execFile(
-    'powershell.exe',
-    ['-NoProfile', '-Command', psScript],
-    { encoding: 'utf8' },
-    (error, stdout, stderr) => {
-      if (error) {
-        console.error(
-          Constants.TEXT_RED_COLOR,
-          "Couldn't enable ICMP ping on host",
-          error,
-        );
-      } else {
-        console.log(Constants.TEXT_GREEN_COLOR, 'ICMP ping enabled');
-      }
-    },
-  );
-}

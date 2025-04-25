@@ -3,12 +3,7 @@ import cors from 'cors';
 import { Globals } from './globals';
 import { isAdmin } from './utilities/auth';
 import { Constants } from './constants';
-import {
-  isWindows,
-  windows_enable_auditing,
-  windows_enable_ping,
-  isMac,
-} from './utilities/host';
+import { isWindows, windows_enable_auditing, isMac } from './utilities/host';
 import { serveHoneytoken } from './routes/honeytoken';
 import { serveGeneral } from './routes/general';
 
@@ -46,7 +41,6 @@ function main(): void {
 
 async function init() {
   if (isWindows()) {
-    await windows_enable_ping();
     await windows_enable_auditing();
   } else if (isMac()) {
     console.log('Running on Mac');
