@@ -1,9 +1,25 @@
-import isElevated from 'is-elevated';
 import { Globals } from '../globals';
 
+import {
+isWindows,
+isMac,
+isLinux,
+} from './host';
+
+
 export async function isAdmin(): Promise<boolean> {
-  return isElevated();
+  if (isWindows()) {
+    const isElevated = await import('is-elevated');
+    return await isElevated.default();
+  } else if (isLinux()) {
+    return process.getuid !== undefined && process.getuid() === 0;
+  } else if (isMac()) {
+    console.log('Running on Mac');
+  }
+  
+  return false;
 }
+
 
 export async function isFromManager(origin: string): Promise<boolean> {
   if (
