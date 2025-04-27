@@ -3,9 +3,15 @@ import cors from 'cors';
 import { Globals } from './globals';
 import { isAdmin } from './utilities/auth';
 import { Constants } from './constants';
-import { isWindows, windows_enable_auditing, isMac } from './utilities/host';
+import {
+  isWindows,
+  windows_enable_auditing,
+  isMac,
+  isLinux,
+} from './utilities/host';
 import { serveHoneytoken } from './routes/honeytoken';
 import { serveGeneral } from './routes/general';
+import { agentStatus } from './routes/status';
 
 main();
 
@@ -27,7 +33,8 @@ function main(): void {
         Globals.app = app;
         serveGeneral();
         serveHoneytoken();
-
+        agentStatus();
+        
         Globals.app.listen(port, () => {
           console.log(`[+] Server running on port ${port}`);
         });
@@ -42,6 +49,8 @@ function main(): void {
 async function init() {
   if (isWindows()) {
     await windows_enable_auditing();
+  } else if (isLinux()) {
+    console.log('Running on Linux');
   } else if (isMac()) {
     console.log('Running on Mac');
   }

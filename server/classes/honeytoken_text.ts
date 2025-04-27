@@ -23,7 +23,7 @@ export class Honeytoken_Text extends Honeytoken {
     this.location = location;
     this.file_name = file_name;
     this.notes = notes;
-    this.agent = new Monitor_Text(this.location + '\\' + this.file_name, this);
+    this.agent = new Monitor_Text(path.join(this.location, this.file_name), this);
   }
 
   getFileName(): string {
