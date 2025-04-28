@@ -52,7 +52,7 @@ export function serveHoneytoken() {
           fs.writeFileSync(filePath, data);
         }
 
-        received_token.startAgent();
+        received_token.startMonitor();
 
         res
           .status(200)
@@ -84,11 +84,17 @@ export function serveHoneytoken() {
         if (Globals.tokens[i].getTokenID() === token_id)
           token_to_remove = Globals.tokens[i];
 
+      if (token_to_remove) {
+        token_to_remove = token_to_remove as Honeytoken_Text;
+        token_to_remove.stopMonitor();
+      }
+
       if (token_to_remove && token_to_remove.getType() === 'text') {
         try {
-          const token = token_to_remove as Honeytoken_Text;
-
-          const fullPath = path.join(token.getLocation(), token.getFileName());
+          const fullPath = path.join(
+            token_to_remove.getLocation(),
+            token_to_remove.getFileName(),
+          );
 
           if (fs.existsSync(fullPath)) {
             fs.unlinkSync(fullPath);
