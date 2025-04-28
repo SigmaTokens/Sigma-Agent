@@ -6,10 +6,12 @@ import { Constants } from './constants';
 import {
   isWindows,
   windows_enable_auditing,
-  windows_enable_ping,
   isMac,
+  isLinux,
 } from './utilities/host';
 import { serveHoneytoken } from './routes/honeytoken';
+import { serveGeneral } from './routes/general';
+import { agentStatus } from './routes/status';
 
 main();
 
@@ -29,8 +31,10 @@ function main(): void {
     init()
       .then(() => {
         Globals.app = app;
+        serveGeneral();
         serveHoneytoken();
-
+        agentStatus();
+        
         Globals.app.listen(port, () => {
           console.log(`[+] Server running on port ${port}`);
         });
@@ -44,8 +48,9 @@ function main(): void {
 
 async function init() {
   if (isWindows()) {
-    await windows_enable_ping();
     await windows_enable_auditing();
+  } else if (isLinux()) {
+    console.log('Running on Linux');
   } else if (isMac()) {
     console.log('Running on Mac');
   }

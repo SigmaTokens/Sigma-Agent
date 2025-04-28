@@ -49,7 +49,7 @@ export function serveHoneytoken() {
         const filePath = path.join(location, file_name);
 
         if (!fs.existsSync(filePath)) {
-          fs.writeFileSync(filePath, data);
+          received_token.createFile(data);
         }
 
         received_token.startMonitor();

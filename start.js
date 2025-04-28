@@ -51,15 +51,21 @@ function get_root_dir() {
 }
 
 function is_extension_installed(extension) {
-  const listCommand = 'code --list-extensions';
+  const listCommand = process.platform === 'linux' 
+    ? 'sudo -u $SUDO_USER code --list-extensions' 
+    : 'code --list-extensions';
   const installedExtensions = execSync(listCommand).toString().split('\n');
   return installedExtensions.includes(extension);
 }
 
 function is_extension_updated(extension) {
+  const command = process.platform === 'linux' 
+    ? 'sudo -u $SUDO_USER code --list-extensions --show-versions | grep ${extension}' 
+    : 'code --list-extensions --show-versions | grep ${extension}';
+  
   return new Promise((resolve) => {
     exec(
-      `code --list-extensions --show-versions | grep ${extension}`,
+      command,
       (error, stdout) => {
         resolve(stdout.includes('@') ? stdout.trim() : null);
       },
@@ -75,14 +81,25 @@ function install_extension(extension) {
       is_extension_updated(extension).then((updateCheck) => {
         if (updateCheck) {
           console.log(`[+] ${extension} update available, upgrading...`);
-          execSync(`code --install-extension ${extension} --force`);
+          
+          if(process.platform === 'linux') {
+            execSync(`sudo -u $SUDO_USER code --install-extension ${extension} --force`);
+          }
+          else { //(process.platform === 'win32') {
+            execSync(`code --install-extension ${extension} --force`);
+          }
         } else {
           console.log(`[+] ${extension} is up-to-date`);
         }
       });
     } else {
       console.log(`[+] Installing ${extension}...`);
-      execSync(`code --install-extension ${extension} --force`);
+      if(process.platform === 'linux') {
+        execSync(`sudo -u $SUDO_USER code --install-extension ${extension} --force`);
+      }
+      else { //(process.platform === 'win32') {
+        execSync(`code --install-extension ${extension} --force`);
+      }
     }
   } catch (error) {
     console.error(`[-] Failed: ${error.message}`);
