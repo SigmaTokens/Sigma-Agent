@@ -10,46 +10,77 @@ export function serveMonitor() {
     try {
       const origin = req.get('origin') || '';
       if (!isFromManager(origin)) {
-        res.status(500).json({ failure: 'not requested by the manager!' });
-        return;
+        res.status(403).json({ failure: 'Access denied' });
       }
 
-      for (let i = 0; i < Globals.tokens.length; i++) {
-        const token = Globals.tokens[i] as Honeytoken_Text;
-        if (token.isMonitoring())
-          res.status(200).json({
-            success: 'agent is monitoring!',
-          });
-        return;
+      let isMonitoring = false;
+
+      for (const token of Globals.tokens) {
+        if (token instanceof Honeytoken_Text && token.isMonitoring()) {
+          isMonitoring = true;
+          break;
+        }
       }
 
-      res.status(201).json({ failure: 'agent is not monitoring!' });
-      return;
+      res.status(isMonitoring ? 200 : 201).json({
+        status: isMonitoring ? 'monitoring' : 'not monitoring',
+      });
     } catch (error: any) {
-      res.status(500).json({ failure: error.message });
-      return;
+      console.error('Status check error:', error);
+      res.status(500).json({ failure: 'Internal server error' });
     }
   });
 
   router.get('/monitor/start', (req, res) => {
     try {
       const origin = req.get('origin') || '';
+
       if (!isFromManager(origin)) {
-        res.status(500).json({ failure: 'not requested by the manager!' });
+        console.warn(`Unauthorized monitoring attempt from ${origin}`);
+        res.status(403).json({ failure: 'Access denied' });
         return;
       }
 
-      for (let i = 0; i < Globals.tokens.length; i++) {
-        const token = Globals.tokens[i] as Honeytoken_Text;
-        if (!token.isMonitoring()) token.startMonitor();
+      if (Globals.tokens.length === 0) {
+        res.status(200).json({ success: 'No honeytokens to monitor' });
+        return;
       }
 
-      res
-        .status(200)
-        .json({ success: 'agent is running and monitoring all honeytokens!' });
+      let anyStarted = false;
+      let anyFailed = false;
+
+      Globals.tokens.forEach((token) => {
+        try {
+          if (token instanceof Honeytoken_Text && !token.isMonitoring()) {
+            token.startMonitor();
+            anyStarted = true;
+          }
+        } catch (tokenError) {
+          console.error(`Failed to start monitoring for token:`, tokenError);
+          anyFailed = true;
+        }
+      });
+
+      // Response handling
+      if (anyFailed) {
+        res.status(207).json({
+          success: anyStarted ? 'Partial success' : 'All tokens failed',
+          failure: 'Some tokens failed to start',
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: anyStarted
+          ? 'Monitoring started for all honeytokens'
+          : 'Monitoring was already running',
+      });
       return;
-    } catch (error: any) {
-      res.status(500).json({ failure: error.message });
+    } catch (error) {
+      console.error('Monitor startup error:', error);
+      res.status(500).json({
+        failure: 'Internal server error',
+      });
       return;
     }
   });
@@ -58,24 +89,28 @@ export function serveMonitor() {
     try {
       const origin = req.get('origin') || '';
       if (!isFromManager(origin)) {
-        res.status(500).json({ failure: 'not requested by the manager!' });
-        return;
+        res.status(403).json({ failure: 'Access denied' });
       }
 
-      console.log('test_1');
-      for (let i = 0; i < Globals.tokens.length; i++) {
-        const token = Globals.tokens[i] as Honeytoken_Text;
-        if (token.isMonitoring()) token.stopMonitor();
+      let anyStopped = false;
+
+      for (const token of Globals.tokens) {
+        if (token instanceof Honeytoken_Text) {
+          if (token.isMonitoring()) {
+            token.stopMonitor();
+            anyStopped = true;
+          }
+        }
       }
-      console.log('yummmm');
 
       res.status(200).json({
-        success: 'agent stopped monitorting all honeytokens!',
+        success: anyStopped
+          ? 'Monitoring stopped for all honeytokens'
+          : 'No monitoring was active',
       });
-      return;
     } catch (error: any) {
-      res.status(500).json({ failure: error.message });
-      return;
+      console.error('Stop monitoring error:', error);
+      res.status(500).json({ failure: 'Internal server error' });
     }
   });
 

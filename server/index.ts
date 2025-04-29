@@ -13,6 +13,7 @@ import { serveHoneytoken } from './routes/honeytoken';
 import { serveMonitor } from './routes/monitor';
 import { serveGeneral } from './routes/general';
 import { agentStatus } from './routes/status';
+import { initHoneytokens } from './utilities/init';
 
 main();
 
@@ -32,6 +33,7 @@ function main(): void {
     init()
       .then(() => {
         Globals.app = app;
+        initHoneytokens();
         serveGeneral();
         serveHoneytoken();
         agentStatus();
