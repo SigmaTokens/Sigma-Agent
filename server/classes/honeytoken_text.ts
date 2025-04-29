@@ -1,5 +1,5 @@
 import { HoneytokenType } from '../interfaces/type';
-import { Honeytoken } from './Honeytoken';
+import { Honeytoken } from './honeytoken';
 import { Monitor_Text } from './monitor_text';
 import fs from 'fs';
 import path from 'path';
@@ -8,6 +8,7 @@ export class Honeytoken_Text extends Honeytoken {
   location: string;
   file_name: string;
   agent: Monitor_Text;
+  is_monitoring: boolean = false;
 
   constructor(
     token_id: string,
@@ -23,7 +24,8 @@ export class Honeytoken_Text extends Honeytoken {
     this.location = location;
     this.file_name = file_name;
     this.notes = notes;
-    this.agent = new Monitor_Text(path.join(this.location, this.file_name), this);
+    this.agent = new Monitor_Text(this.location + '\\' + this.file_name, this);
+    this.is_monitoring = false;
   }
 
   getFileName(): string {
@@ -51,11 +53,19 @@ export class Honeytoken_Text extends Honeytoken {
     }
   }
 
-  startAgent(): void {
-    this.agent.start_monitor();
+  isMonitoring(): boolean {
+    console.log('you suck');
+    if (!this.is_monitoring) return false;
+    return this.is_monitoring;
   }
 
-  stopAgent(): void {
+  startMonitor(): void {
+    this.agent.start_monitor();
+    this.is_monitoring = true;
+  }
+
+  stopMonitor(): void {
     this.agent.stop_monitor();
+    this.is_monitoring = false;
   }
 }

@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { Monitor } from './Monitor';
+import { Monitor } from './monitor';
 import { exec } from 'child_process';
 import { Constants } from '../constants';
 import { isWindows, isMac, isLinux } from '../utilities/host';
@@ -20,6 +20,17 @@ export class Monitor_Text extends Monitor {
     this.not_first_log = false;
   }
 
+  async stop_monitor() {
+    if (isWindows()) {
+      await this.remove_audit_rule_windows();
+    } else if (isMac()) {
+      await this.disable_fsevents_mac();
+    } else if (isLinux()) {
+      await this.remove_audit_rule_linux();
+    }
+    console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`);
+  }
+
   async start_monitor() {
     if (isWindows()) {
       this.monitorWindows();
@@ -28,9 +39,73 @@ export class Monitor_Text extends Monitor {
     } else if (isLinux()) {
       this.monitorLinux();
     }
+    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file}`);
   }
 
-  async stop_monitor() {}
+  // -------- WINDOWS --------
+  private async remove_audit_rule_windows() {
+    const psCommand = `$path = '${this.file}';
+                      $acl = Get-Acl $path;
+                      $acl.AuditRules.Clear();
+                      Set-Acl -Path $path -AclObject $acl;
+                      Write-Output "Audit rules removed successfully from $path";`;
+
+    const command = `powershell.exe -NoProfile -Command "${psCommand.replace(/\r?\n/g, ';')}"`;
+
+    exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
+      if (error) {
+        console.error(
+          Constants.TEXT_RED_COLOR,
+          `Error removing audit rule from ${this.file}: ${error}`,
+        );
+        return;
+      }
+      console.log(
+        Constants.TEXT_GREEN_COLOR,
+        `Successfully removed audit rules from ${this.file}`,
+      );
+    });
+  }
+
+  // -------- LINUX --------
+  private async remove_audit_rule_linux() {
+    const command = `sudo auditctl -W ${this.file} -k honeytoken_access`;
+
+    exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
+      if (error) {
+        console.error(
+          Constants.TEXT_RED_COLOR,
+          `Error removing audit rule from ${this.file}: ${error}`,
+        );
+        return;
+      }
+      console.log(
+        Constants.TEXT_GREEN_COLOR,
+        `Successfully removed audit rules from ${this.file}`,
+      );
+    });
+  }
+
+  // -------- MAC --------
+  private async disable_fsevents_mac() {
+    const command =
+      `sudo log config --subsystem "com.apple.fseventsd" --mode "level:default" && ` +
+      `sudo chmod 644 ${this.file}`;
+
+    exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
+      if (error) {
+        console.error(
+          Constants.TEXT_RED_COLOR,
+          `Error disabling fsevents monitoring: ${error}`,
+        );
+        return;
+      }
+      console.log(
+        Constants.TEXT_GREEN_COLOR,
+        `Successfully disabled fsevents monitoring for ${this.file}`,
+      );
+    });
+  }
 
   // -------- WINDOWS --------
   async monitorWindows() {
