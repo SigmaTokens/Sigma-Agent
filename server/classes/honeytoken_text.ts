@@ -54,8 +54,6 @@ export class Honeytoken_Text extends Honeytoken {
   }
 
   isMonitoring(): boolean {
-    console.log('you suck');
-    if (!this.is_monitoring) return false;
     return this.is_monitoring;
   }
 
