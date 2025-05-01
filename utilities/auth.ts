@@ -1,11 +1,4 @@
-import { Globals } from '../globals';
-
-import {
-isWindows,
-isMac,
-isLinux,
-} from './host';
-
+import { isWindows, isMac, isLinux } from './host.ts';
 
 export async function isAdmin(): Promise<boolean> {
   if (isWindows()) {
@@ -16,10 +9,8 @@ export async function isAdmin(): Promise<boolean> {
   } else if (isMac()) {
     console.log('Running on Mac');
   }
-  
   return false;
 }
-
 
 export async function isFromManager(origin: string): Promise<boolean> {
   if (

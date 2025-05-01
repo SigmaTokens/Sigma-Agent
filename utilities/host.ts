@@ -1,5 +1,5 @@
-import { exec, execFile } from 'child_process';
-import { Constants } from '../constants';
+import { exec } from 'child_process';
+import { Constants } from '../constants.ts';
 
 export function getPlatform(): NodeJS.Platform {
   return process.platform;

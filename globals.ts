@@ -1,4 +1,4 @@
-import { I_Honeytoken } from './interfaces/honeytoken';
+import { I_Honeytoken } from './interfaces/honeytoken.ts';
 
 export class Globals {
   public static app: any = null;

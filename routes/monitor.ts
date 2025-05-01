@@ -1,7 +1,7 @@
-import { Globals } from '../globals';
+import { Globals } from '../globals.ts';
 import { Router } from 'express';
-import { isFromManager } from '../utilities/auth';
-import { Honeytoken_Text } from '../classes/honeytoken_text';
+import { isFromManager } from '../utilities/auth.ts';
+import { Honeytoken_Text } from '../classes/honeytoken_text.ts';
 
 export function serveMonitor() {
   const router = Router();

@@ -1,5 +1,5 @@
-import { Globals } from '../globals';
-import { Honeytoken_Text } from '../classes/honeytoken_text';
+import { Globals } from '../globals.ts';
+import { Honeytoken_Text } from '../classes/honeytoken_text.ts';
 
 export async function initHoneytokens(): Promise<void> {
   try {
