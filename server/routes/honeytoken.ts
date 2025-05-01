@@ -116,5 +116,121 @@ export function serveHoneytoken() {
     }
   });
 
+  router.post('/honeytoken/start', (req, res) => {
+    try {
+      const origin = req.get('origin') || '';
+      const { token_id } = req.body;
+      let responseSent = false;
+
+      if (!isFromManager(origin)) {
+        console.warn(`Unauthorized monitoring attempt from ${origin}`);
+        res.status(403).json({ failure: 'Access denied' });
+        return;
+      }
+
+      if (!token_id) {
+        res.status(400).json({ failure: 'token_id is required' });
+        return;
+      }
+
+      Globals.tokens.forEach((token) => {
+        if (token.getTokenID() === token_id) {
+          if (!(token instanceof Honeytoken_Text)) {
+            if (!responseSent) {
+              res.status(400).json({ failure: 'Invalid honeytoken type' });
+              responseSent = true;
+            }
+            return;
+          }
+
+          if (token.isMonitoring()) {
+            if (!responseSent) {
+              res
+                .status(200)
+                .json({ success: 'Monitoring already running for this token' });
+              responseSent = true;
+            }
+            return;
+          }
+
+          token.startMonitor();
+          if (!responseSent) {
+            res
+              .status(200)
+              .json({ success: 'Monitoring started successfully' });
+            responseSent = true;
+          }
+        }
+      });
+
+      if (!responseSent) {
+        res.status(404).json({ failure: 'Honeytoken not found' });
+      }
+    } catch (error) {
+      console.error('Monitor startup error:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ failure: 'Internal server error' });
+      }
+    }
+  });
+
+  router.post('/honeytoken/stop', (req, res) => {
+    try {
+      const origin = req.get('origin') || '';
+      const { token_id } = req.body;
+      let responseSent = false;
+
+      if (!isFromManager(origin)) {
+        console.warn(`Unauthorized monitoring attempt from ${origin}`);
+        res.status(403).json({ failure: 'Access denied' });
+        return;
+      }
+
+      if (!token_id) {
+        res.status(400).json({ failure: 'token_id is required' });
+        return;
+      }
+
+      Globals.tokens.forEach((token) => {
+        if (token.getTokenID() === token_id) {
+          if (!(token instanceof Honeytoken_Text)) {
+            if (!responseSent) {
+              res.status(400).json({ failure: 'Invalid honeytoken type' });
+              responseSent = true;
+            }
+            return;
+          }
+
+          if (!token.isMonitoring()) {
+            if (!responseSent) {
+              res
+                .status(200)
+                .json({ success: 'Monitoring not active for this token' });
+              responseSent = true;
+            }
+            return;
+          }
+
+          token.stopMonitor();
+          if (!responseSent) {
+            res
+              .status(200)
+              .json({ success: 'Monitoring stopped successfully' });
+            responseSent = true;
+          }
+        }
+      });
+
+      if (!responseSent) {
+        res.status(404).json({ failure: 'Honeytoken not found' });
+      }
+    } catch (error) {
+      console.error('Stop monitoring error:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ failure: 'Internal server error' });
+      }
+    }
+  });
+
   Globals.app.use('/api', router);
 }
