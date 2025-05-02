@@ -128,7 +128,8 @@ function setup_prettier_config(rootDir) {
     "singleQuote": true,
     "trailingComma": "all",
     "tabWidth": 2,
-    "semi": true
+    "semi": true,
+    "printWidth": 120
   }`;
 
   const prettierIgnore = `node_modules
@@ -158,11 +159,8 @@ function setup_vscode_settings(rootDir) {
 
 function install_deps() {
   try {
-    console.log('[+] Updating deps for root~~~');
+    console.log('[+] Updating deps for agent~~~');
     execSync('npm install', { stdio: 'inherit' });
-
-    console.log('[+] Updating deps for server~~~');
-    execSync('npm install --prefix server', { stdio: 'inherit' });
 
     console.log('[+] Deps update complete!');
   } catch (error) {

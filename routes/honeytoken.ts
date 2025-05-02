@@ -2,9 +2,9 @@ import { Router } from 'express';
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { Honeytoken_Text } from '../classes/honeytoken_text';
-import { Globals } from '../globals';
-import { isFromManager } from '../utilities/auth';
+import { Honeytoken_Text } from '../classes/honeytoken_text.ts';
+import { Globals } from '../globals.ts';
+import { isFromManager } from '../utilities/auth.ts';
 
 export function serveHoneytoken() {
   const router = Router();

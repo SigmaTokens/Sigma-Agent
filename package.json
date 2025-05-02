@@ -1,35 +1,54 @@
 {
-  "type": "module",
-  "scripts": {
-    "format": "prettier --write \"**/*.{js,ts,jsx,tsx,json,md}\"",
-    "prod-server": "npm --prefix server run start",
-    "prod": "concurrently \"npm run prod-server\"",
-    "dev-server": "npm --prefix server run dev",
-    "dev": "concurrently \"npm run dev-server\"",
-    "start-dev": "npm install cross-env && cross-env MODE=dev node start.js dev",
-    "start-prod": "npm install cross-env && cross-env MODE=prod node start.js prod"
-  },
   "name": "sigma-agent",
   "version": "1.0.0",
   "description": "**Add stuff here later on**",
+  "main": "index.js",
+  "type": "module",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "format": "prettier --write \"**/*.{js,ts,jsx,tsx,json,md}\"",
+    "start": "cross-env NODE_ENV=production ts-node index.ts",
+    "dev": "nodemon --watch \"**/*.ts\" --ext ts --exec \"node --experimental-specifier-resolution=node --loader ts-node/esm\" index.ts",
+    "prod-server": "npm run start",
+    "prod": "concurrently \"npm run prod-server\"",
+    "dev-server": "npm run dev",
+    "start-dev": "npm install cross-env && cross-env MODE=dev node start.js dev",
+    "start-prod": "npm install cross-env && cross-env MODE=prod node start.js prod"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SigmaTokens/Sigma-Agent.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/SigmaTokens/Sigma-Agent/issues"
   },
   "homepage": "https://github.com/SigmaTokens/Sigma-Agent#readme",
-  "devDependencies": {
-    "concurrently": "^9.1.2",
-    "prettier": "3.5.3"
-  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "cross-env": "^7.0.3",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "ip": "^2.0.1",
+    "is-elevated": "^4.0.0",
+    "sigma-agent": "file:..",
+    "sigmatokens": "file:..",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.15.3",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.1.10",
+    "prettier": "3.5.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
 }

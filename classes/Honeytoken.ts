@@ -1,5 +1,5 @@
-import { I_Honeytoken } from '../interfaces/honeytoken';
-import { HoneytokenType } from '../interfaces/type';
+import { I_Honeytoken } from '../interfaces/honeytoken.ts';
+import { HoneytokenType } from '../interfaces/type.ts';
 
 export abstract class Honeytoken implements I_Honeytoken {
   token_id: string;

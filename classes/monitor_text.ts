@@ -1,10 +1,10 @@
 import fs from 'fs';
-import { Monitor } from './monitor';
+import { Monitor } from './Monitor.ts';
 import { exec } from 'child_process';
-import { Constants } from '../constants';
-import { isWindows, isMac, isLinux } from '../utilities/host';
-import { sleep } from '../utilities/utilities';
-import { Honeytoken_Text } from './honeytoken_text';
+import { Constants } from '../constants.ts';
+import { isWindows, isMac, isLinux } from '../utilities/host.ts';
+import { sleep } from '../utilities/utilities.ts';
+import { Honeytoken_Text } from './honeytoken_text.ts';
 
 export class Monitor_Text extends Monitor {
   file: string;
