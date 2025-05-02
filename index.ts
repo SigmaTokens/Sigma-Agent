@@ -3,7 +3,6 @@ import cors from 'cors';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import path from 'path';
-import ip from 'ip';
 import { Globals } from './globals.ts';
 import { isAdmin } from './utilities/auth.ts';
 import { Constants } from './constants.ts';
@@ -83,14 +82,18 @@ function validate_environment_file(): boolean {
 }
 
 function send_initial_request_to_manager(): void {
-  fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/agents/add`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      id: process.env[Constants.AGENT_ID_VARIABLE],
-      ip: ip.address(),
-      name: process.env.AGENT_NAME,
-      port: Globals.port,
-    }),
+  import('ip').then((ipModule) => {
+    const ip = (ipModule as any).default || ipModule;
+
+    fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/agents/add`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: process.env[Constants.AGENT_ID_VARIABLE],
+        ip: ip.address(),
+        name: process.env.AGENT_NAME,
+        port: Globals.port,
+      }),
+    });
   });
 }
