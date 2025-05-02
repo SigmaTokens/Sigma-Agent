@@ -3,6 +3,7 @@ import cors from 'cors';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import path from 'path';
+import * as ip from 'ip';
 import { Globals } from './globals.ts';
 import { isAdmin } from './utilities/auth.ts';
 import { Constants } from './constants.ts';
@@ -36,8 +37,8 @@ function main(): void {
     // prettier-ignore
     init().then(() => {
         Globals.app = app;
-        // initHoneytokens(); // TODO: this needs to be deleted - when the agent is down it will need to be restarted from the manager not from agent - meaning the manager will initiate the honeytoken send
-        serveGeneral();
+        // initHoneytokens(); // TODO: this needs to be modified -run this function only when manager verified the agent
+        serveGeneral();  
         serveHoneytoken();
         agentStatus();
         serveMonitor();
@@ -82,8 +83,6 @@ function validate_environment_file(): boolean {
 }
 
 function send_initial_request_to_manager(): void {
-  const ip = require('ip');
-
   fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/agents/add`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
