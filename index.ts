@@ -13,7 +13,7 @@ import { serveGeneral } from './routes/general.ts';
 import { agentStatus } from './routes/status.ts';
 import { initHoneytokens } from './utilities/init.ts';
 import { v4 as uuidv4 } from 'uuid';
-import { internalIpV4 } from 'internal-ip';
+import { internalIpV4Sync } from 'internal-ip';
 
 main();
 
@@ -83,15 +83,14 @@ function validate_environment_file(): boolean {
 }
 
 function send_initial_request_to_manager(): void {
-  internalIpV4().then((agent_ip) => {
-    console.log(agent_ip);
+    console.log(internalIpV4Sync());
     try {
       fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/agents/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: process.env[Constants.AGENT_ID_VARIABLE],
-          ip: agent_ip,
+          ip: internalIpV4Sync(),
           name: process.env.AGENT_NAME,
           port: Globals.port,
         }),
