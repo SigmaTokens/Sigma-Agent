@@ -3,7 +3,7 @@ import cors from 'cors';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import path from 'path';
-import * as ip from 'ip';
+import * as IPModule from 'ip';
 import { Globals } from './globals.ts';
 import { isAdmin } from './utilities/auth.ts';
 import { Constants } from './constants.ts';
@@ -14,6 +14,8 @@ import { serveGeneral } from './routes/general.ts';
 import { agentStatus } from './routes/status.ts';
 import { initHoneytokens } from './utilities/init.ts';
 import { v4 as uuidv4 } from 'uuid';
+
+const ip = (IPModule as any).default || IPModule;
 
 main();
 
