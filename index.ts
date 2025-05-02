@@ -12,6 +12,7 @@ import { serveMonitor } from './routes/monitor.ts';
 import { serveGeneral } from './routes/general.ts';
 import { agentStatus } from './routes/status.ts';
 import { initHoneytokens } from './utilities/init.ts';
+import { v4 as uuidv4 } from 'uuid';
 
 main();
 
@@ -21,27 +22,28 @@ function main(): void {
   app.use(cors());
   app.use(express.urlencoded({ extended: true }));
 
-  //!!!!!!! TODO: add validation that .env file with the necessary stuff exists !!!!!!!!
   if (!validate_environment_file()) return;
 
-  const port = process.env.PORT || 9007;
+  Globals.port = parseInt(process.env.PORT ? process.env.PORT : Constants.DEFAULT_AGENT_PORT);
+
+  send_initial_request_to_manager();
 
   isAdmin().then((isAdmin) => {
     if (!isAdmin) {
       console.error(Constants.TEXT_RED_COLOR, 'Please run as administrator');
       return;
     }
-    init()
-      .then(() => {
+    // prettier-ignore
+    init().then(() => {
         Globals.app = app;
-        initHoneytokens();
+        // initHoneytokens(); // TODO: this needs to be deleted - when the agent is down it will need to be restarted from the manager not from agent - meaning the manager will initiate the honeytoken send
         serveGeneral();
         serveHoneytoken();
         agentStatus();
         serveMonitor();
 
-        Globals.app.listen(port, () => {
-          console.log(`[+] Server running on port ${port}`);
+        Globals.app.listen(  Globals.port , () => {
+          console.log(`[+] Server running on port ${  Globals.port }`);
         });
       })
       .catch((error) => {
@@ -63,12 +65,33 @@ async function init() {
 
 function validate_environment_file(): boolean {
   const env_path = path.resolve(process.cwd(), '.env');
-
   if (fs.existsSync(env_path)) {
     dotenv.config();
+    //TODO: add validations that all variables needed exists
+    if (!process.env[Constants.AGENT_ID_VARIABLE]) {
+      const new_uuid = uuidv4();
+      fs.appendFileSync(env_path, `\n${Constants.AGENT_ID_VARIABLE}=${new_uuid}`, { encoding: 'utf-8' });
+      process.env[Constants.AGENT_ID_VARIABLE] = new_uuid;
+    }
+    console.log(Constants.TEXT_YELLOW_COLOR, `Your uuid is: ${process.env[Constants.AGENT_ID_VARIABLE]}`);
     return true;
   } else {
     console.log(Constants.TEXT_RED_COLOR, 'Error: environment file .env not found');
     return false;
   }
+}
+
+function send_initial_request_to_manager(): void {
+  const ip = require('ip');
+
+  fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/agents/add`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: process.env[Constants.AGENT_ID_VARIABLE],
+      ip: ip.address(),
+      name: process.env.AGENT_NAME,
+      port: Globals.port,
+    }),
+  });
 }

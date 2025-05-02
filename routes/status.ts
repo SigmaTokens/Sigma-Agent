@@ -6,7 +6,6 @@ export function agentStatus() {
 
   router.get('/status', async (req, res) => {
     try {
-      console.log('online');
       res.sendStatus(200);
     } catch (error: any) {
       console.error('[-] Failed to create alert:', error.message);
