@@ -3,7 +3,6 @@ import cors from 'cors';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import path from 'path';
-import * as ip from 'ip';
 import { Globals } from './globals.ts';
 import { isAdmin } from './utilities/auth.ts';
 import { Constants } from './constants.ts';
@@ -14,6 +13,10 @@ import { serveGeneral } from './routes/general.ts';
 import { agentStatus } from './routes/status.ts';
 import { initHoneytokens } from './utilities/init.ts';
 import { v4 as uuidv4 } from 'uuid';
+
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const ip = require('ip');
 
 main();
 
@@ -71,7 +74,7 @@ function validate_environment_file(): boolean {
     //TODO: add validations that all variables needed exists
     if (!process.env[Constants.AGENT_ID_VARIABLE]) {
       const new_uuid = uuidv4();
-      fs.appendFileSync(env_path, `\n${Constants.AGENT_ID_VARIABLE}=${new_uuid}`, { encoding: 'utf-8' });
+      fs.appendFileSync(env_path, `${Constants.AGENT_ID_VARIABLE}=${new_uuid}`, { encoding: 'utf-8' });
       process.env[Constants.AGENT_ID_VARIABLE] = new_uuid;
     }
     console.log(Constants.TEXT_YELLOW_COLOR, `Your uuid is: ${process.env[Constants.AGENT_ID_VARIABLE]}`);
@@ -83,14 +86,21 @@ function validate_environment_file(): boolean {
 }
 
 function send_initial_request_to_manager(): void {
-  fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/agents/add`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      id: process.env[Constants.AGENT_ID_VARIABLE],
-      ip: ip.address(),
-      name: process.env.AGENT_NAME,
-      port: Globals.port,
-    }),
-  });
+  console.log(ip.address());
+  try {
+    fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/agents/add`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: process.env[Constants.AGENT_ID_VARIABLE],
+        ip: ip.address(),
+        name: process.env.AGENT_NAME,
+        port: Globals.port,
+      }),
+    }).then((res) => {
+      console.log(res);
+    });
+  } catch (err) {
+    console.log(err);
+  }
 }
