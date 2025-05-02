@@ -71,7 +71,7 @@ function validate_environment_file(): boolean {
     //TODO: add validations that all variables needed exists
     if (!process.env[Constants.AGENT_ID_VARIABLE]) {
       const new_uuid = uuidv4();
-      fs.appendFileSync(env_path, `\n${Constants.AGENT_ID_VARIABLE}=${new_uuid}`, { encoding: 'utf-8' });
+      fs.appendFileSync(env_path, `${Constants.AGENT_ID_VARIABLE}=${new_uuid}`, { encoding: 'utf-8' });
       process.env[Constants.AGENT_ID_VARIABLE] = new_uuid;
     }
     console.log(Constants.TEXT_YELLOW_COLOR, `Your uuid is: ${process.env[Constants.AGENT_ID_VARIABLE]}`);
@@ -84,15 +84,19 @@ function validate_environment_file(): boolean {
 
 function send_initial_request_to_manager(): void {
   internalIpV4().then((agent_ip) => {
-    fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/agents/add`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: process.env[Constants.AGENT_ID_VARIABLE],
-        ip: agent_ip,
-        name: process.env.AGENT_NAME,
-        port: Globals.port,
-      }),
-    });
+    try {
+      fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/agents/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: process.env[Constants.AGENT_ID_VARIABLE],
+          ip: agent_ip,
+          name: process.env.AGENT_NAME,
+          port: Globals.port,
+        }),
+      });
+    } catch (err) {
+      console.log(err);
+    }
   });
 }
