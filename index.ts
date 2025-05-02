@@ -94,6 +94,8 @@ function send_initial_request_to_manager(): void {
           name: process.env.AGENT_NAME,
           port: Globals.port,
         }),
+      }).then((res) => {
+        console.log(res);
       });
     } catch (err) {
       console.log(err);
