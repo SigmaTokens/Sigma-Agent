@@ -9,7 +9,7 @@ import { isFromManager } from '../utilities/auth.ts';
 export function serveHoneytoken() {
   const router = Router();
 
-  router.post('/honeytoken/add', (req, res) => {
+  router.post('/honeytoken/add', async (req, res) => {
     try {
       const origin = req.get('origin') || '';
       if (!isFromManager(origin)) {
@@ -52,7 +52,7 @@ export function serveHoneytoken() {
           received_token.createFile(data);
         }
 
-        received_token.startMonitor();
+        await received_token.startMonitor();
 
         res
           .status(200)
@@ -67,51 +67,203 @@ export function serveHoneytoken() {
     }
   });
 
-  router.post('/honeytoken/remove', (req, res) => {
+  router.post('/honeytoken/remove', async (req, res) => {
     try {
       const origin = req.get('origin') || '';
       if (!isFromManager(origin)) {
-        res.status(500).json({ failure: 'not requested by the manager!' });
+        console.warn(`Unauthorized removal attempt from ${origin}`);
+        res.status(403).json({ failure: 'Access denied' });
         return;
       }
 
-      console.log(req.body);
       const { token_id } = req.body;
-
-      let token_to_remove = null;
-
-      for (let i = 0; i < Globals.tokens.length; i++)
-        if (Globals.tokens[i].getTokenID() === token_id)
-          token_to_remove = Globals.tokens[i];
-
-      if (token_to_remove) {
-        token_to_remove = token_to_remove as Honeytoken_Text;
-        token_to_remove.stopMonitor();
+      if (!token_id) {
+        res.status(400).json({ failure: 'token_id is required' });
+        return;
       }
 
-      if (token_to_remove && token_to_remove.getType() === 'text') {
-        try {
+      // Find and remove the token from Globals.tokens
+      const tokenIndex = Globals.tokens.findIndex(
+        (t) => t.getTokenID() === token_id,
+      );
+      if (tokenIndex === -1) {
+        res.status(404).json({ failure: 'Honeytoken not found' });
+        return;
+      }
+
+      const tokenToRemove = Globals.tokens[tokenIndex] as Honeytoken_Text;
+
+      try {
+        // Stop monitoring first
+        await tokenToRemove.stopMonitor();
+
+        // Remove the physical file if it exists
+        console.log('the honeytoken to remove type: ', tokenToRemove.getType());
+
+        if (tokenToRemove.getType() === 'text') {
           const fullPath = path.join(
-            token_to_remove.getLocation(),
-            token_to_remove.getFileName(),
+            tokenToRemove.getLocation(),
+            tokenToRemove.getFileName(),
           );
 
+          console.log(`[!] Deleting honeytoken file: ${fullPath}`);
           if (fs.existsSync(fullPath)) {
-            fs.unlinkSync(fullPath);
-            console.log(`Deleted honeytoken file: ${fullPath}`);
+            fs.rmSync(fullPath);
+            console.log(`[!] Deleted!`);
           }
-        } catch (error) {
-          console.error(`Error during token deletion: ${error}`);
         }
 
-        res.send().status(200);
+        // Remove from global tokens array
+        Globals.tokens.splice(tokenIndex, 1);
+
+        res.status(200).json({ success: 'Honeytoken removed successfully' });
+        return;
+      } catch (error) {
+        console.error(`Error during token removal: ${error}`);
+        res.status(500).json({ failure: 'Error during token removal' });
+        return;
+      }
+    } catch (error) {
+      console.error('Honeytoken removal error:', error);
+      res.status(500).json({
+        failure:
+          error instanceof Error ? error.message : 'Internal server error',
+      });
+      return;
+    }
+  });
+
+  router.post('/honeytoken/status', (req, res) => {
+    try {
+      const origin = req.get('origin') || '';
+      if (!isFromManager(origin)) {
+        res.status(403).json({ failure: 'Access denied' });
+      }
+
+      const { token_id } = req.body;
+
+      let isMonitoring = false;
+
+      for (const token of Globals.tokens) {
+        if (
+          token instanceof Honeytoken_Text &&
+          token.getTokenID() === token_id &&
+          token.isMonitoring()
+        ) {
+          isMonitoring = true;
+          break;
+        }
+      }
+
+      res.status(isMonitoring ? 200 : 201).json({
+        status: isMonitoring ? 'monitoring' : 'not monitoring',
+      });
+    } catch (error: any) {
+      console.error('Status check error:', error);
+      res.status(500).json({ failure: 'Internal server error' });
+    }
+  });
+
+  router.post('/honeytoken/start', async (req, res) => {
+    try {
+      const origin = req.get('origin') || '';
+      const { token_id } = req.body;
+
+      if (!isFromManager(origin)) {
+        console.warn(`Unauthorized monitoring attempt from ${origin}`);
+        res.status(403).json({ failure: 'Access denied' });
         return;
       }
 
-      res.status(500).json({ failure: 'failed to remove token' });
+      if (!token_id) {
+        res.status(400).json({ failure: 'token_id is required' });
+        return;
+      }
+
+      const token = Globals.tokens.find((t) => t.getTokenID() === token_id);
+
+      if (!token) {
+        res.status(404).json({ failure: 'Honeytoken not found' });
+        return;
+      }
+
+      if (!(token instanceof Honeytoken_Text)) {
+        res.status(400).json({ failure: 'Invalid honeytoken type' });
+        return;
+      }
+
+      if (token.isMonitoring()) {
+        res.status(200).json({
+          success: 'Monitoring already running for this token',
+        });
+        return;
+      }
+
+      await token.startMonitor();
+      res.status(200).json({
+        success: 'Monitoring started successfully',
+      });
       return;
-    } catch (error: any) {
-      res.status(500).json({ failure: error.message });
+    } catch (error) {
+      console.error('Monitor startup error:', error);
+      res.status(500).json({
+        failure:
+          error instanceof Error ? error.message : 'Internal server error',
+      });
+      return;
+    }
+  });
+
+  router.post('/honeytoken/stop', async (req, res) => {
+    try {
+      const origin = req.get('origin') || '';
+      const { token_id } = req.body;
+
+      if (!isFromManager(origin)) {
+        console.warn(`Unauthorized monitoring attempt from ${origin}`);
+        res.status(403).json({ failure: 'Access denied' });
+        return;
+      }
+
+      if (!token_id) {
+        res.status(400).json({ failure: 'token_id is required' });
+        return;
+      }
+
+      const token = Globals.tokens.find((t) => t.getTokenID() === token_id);
+
+      if (!token) {
+        console.log('Honeytoken not found');
+        res.status(404).json({ failure: 'Honeytoken not found' });
+        return;
+      }
+
+      if (!(token instanceof Honeytoken_Text)) {
+        console.log('Invalid honeytoken type');
+        res.status(400).json({ failure: 'Invalid honeytoken type' });
+        return;
+      }
+
+      if (!token.isMonitoring()) {
+        console.log('Monitoring not active for this token');
+        res.status(200).json({
+          success: 'Monitoring not active for this token',
+        });
+        return;
+      }
+
+      await token.stopMonitor();
+      console.log('Monitoring stopped successfully');
+      res.status(200).json({
+        success: 'Monitoring stopped successfully',
+      });
+      return;
+    } catch (error) {
+      console.error('Stop monitoring error:', error);
+      res.status(500).json({
+        failure:
+          error instanceof Error ? error.message : 'Internal server error',
+      });
       return;
     }
   });
