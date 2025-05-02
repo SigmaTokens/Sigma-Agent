@@ -11,6 +11,8 @@ export class Monitor_Text extends Monitor {
   token: Honeytoken_Text;
   last_access_time: Date;
   not_first_log: boolean;
+  shouldSendAlerts: boolean;
+  isMonitoring: boolean;
 
   constructor(file: string, token: Honeytoken_Text) {
     super();
@@ -18,28 +20,56 @@ export class Monitor_Text extends Monitor {
     this.token = token;
     this.last_access_time = new Date();
     this.not_first_log = false;
+    this.shouldSendAlerts = true;
+    this.isMonitoring = false;
   }
 
-  async stop_monitor() {
-    if (isWindows()) {
-      await this.remove_audit_rule_windows();
-    } else if (isMac()) {
-      await this.disable_fsevents_mac();
-    } else if (isLinux()) {
-      await this.remove_audit_rule_linux();
+  async stop_monitor(lightStop: boolean = true) {
+    if (lightStop) {
+      this.shouldSendAlerts = false;
+      console.log(
+        Constants.TEXT_YELLOW_COLOR,
+        `Alerts paused for ${this.file}`,
+      );
+    } else {
+      this.isMonitoring = false;
+      this.shouldSendAlerts = false;
+
+      if (isWindows()) {
+        await this.remove_audit_rule_windows();
+      } else if (isMac()) {
+        await this.disable_fsevents_mac();
+      } else if (isLinux()) {
+        await this.remove_audit_rule_linux();
+      }
+
+      console.log(
+        Constants.TEXT_GREEN_COLOR,
+        `Stopped monitoring ${this.file}`,
+      );
     }
-    console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`);
   }
 
   async start_monitor() {
-    if (isWindows()) {
-      this.monitorWindows();
-    } else if (isMac()) {
-      this.monitorMac();
-    } else if (isLinux()) {
-      this.monitorLinux();
+    if (!this.isMonitoring) {
+      this.isMonitoring = true;
+
+      if (isWindows()) {
+        await this.monitorWindows();
+      } else if (isMac()) {
+        await this.monitorMac();
+      } else if (isLinux()) {
+        await this.monitorLinux();
+      }
+
+      console.log(
+        Constants.TEXT_GREEN_COLOR,
+        `Started monitoring ${this.file}`,
+      );
     }
-    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file}`);
+
+    this.shouldSendAlerts = true;
+    console.log(Constants.TEXT_GREEN_COLOR, `Alerts enabled for ${this.file}`);
   }
 
   // -------- WINDOWS --------
@@ -170,9 +200,7 @@ export class Monitor_Text extends Monitor {
             const eventData = JSON.parse(stdout);
             const accessDate =
               this.extract_access_date_from_event_windows(eventData);
-            if (accessDate > this.last_access_time) {
-              //Globals.alerts
-              //if new_alert is in Global.alerts - then skip
+            if (accessDate > this.last_access_time && this.shouldSendAlerts) {
               this.last_access_time = accessDate;
               if (this.not_first_log) {
                 const jsonData = JSON.stringify(eventData, null, 2);
@@ -180,15 +208,10 @@ export class Monitor_Text extends Monitor {
                 const subjectAccount = eventData.Properties[1].Value;
                 const subjectDomain = eventData.Properties[2].Value;
                 const accessProgram = eventData.Properties[11].Value;
-                // console.log(Constants.TEXT_YELLOW_COLOR, '---------------');
-                // console.log(eventData);
-                // console.log(Constants.TEXT_YELLOW_COLOR, '---------------');
-                // console.log(accessProgram);
-                // console.log(Constants.TEXT_YELLOW_COLOR, '---------------');
+
                 if (
                   Constants.WIN32_EXCLUDE_PROGRAMS_REGEX.test(accessProgram)
                 ) {
-                  //console.log('excluded event');
                   return;
                 }
 
@@ -270,7 +293,7 @@ export class Monitor_Text extends Monitor {
         const eventData = this.parse_auditd_log_linux(stdout);
         const accessDate = new Date(eventData.time);
 
-        if (accessDate > this.last_access_time) {
+        if (accessDate > this.last_access_time && this.shouldSendAlerts) {
           this.last_access_time = accessDate;
 
           if (this.not_first_log) {
@@ -381,7 +404,7 @@ export class Monitor_Text extends Monitor {
 
         if (latestEvent) {
           const accessDate = new Date(latestEvent.timestamp);
-          if (accessDate > this.last_access_time) {
+          if (accessDate > this.last_access_time && this.shouldSendAlerts) {
             this.last_access_time = accessDate;
 
             if (this.not_first_log) {
@@ -401,7 +424,7 @@ export class Monitor_Text extends Monitor {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(postData),
-              }).then(/* ... */);
+              }).then();
             }
           } else {
             this.not_first_log = true;
