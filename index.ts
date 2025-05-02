@@ -14,8 +14,9 @@ import { agentStatus } from './routes/status.ts';
 import { initHoneytokens } from './utilities/init.ts';
 import { v4 as uuidv4 } from 'uuid';
 
-// @ts-ignore
-import { internalIPv4 } from '@loxjs/node-local-ip';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const ip = require('ip');
 
 main();
 
@@ -85,14 +86,14 @@ function validate_environment_file(): boolean {
 }
 
 function send_initial_request_to_manager(): void {
-  console.log(internalIPv4());
+  console.log(ip.address());
   try {
     fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/agents/add`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: process.env[Constants.AGENT_ID_VARIABLE],
-        ip: internalIPv4(),
+        ip: ip.address(),
         name: process.env.AGENT_NAME,
         port: Globals.port,
       }),
