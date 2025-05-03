@@ -1,3 +1,5 @@
+import * as os from 'os';
+
 import fs from 'fs';
 import { Monitor } from './Monitor';
 import { exec } from 'child_process';
@@ -251,7 +253,7 @@ export class Monitor_Text extends Monitor {
     return result;
   }
 
-  // -------- MAC --------
+  //  ---------------------------------------------------------- MAC --------
   async monitorMac() {
     await this.enable_fsevents_mac();
     while (true) {
@@ -259,14 +261,14 @@ export class Monitor_Text extends Monitor {
       await sleep(500);
     }
   }
-
+  
   async enable_fsevents_mac() {
     const command =
       `sudo touch ${this.file} && ` +
       `sudo chmod 444 ${this.file} && ` +
       `sudo log config --mode "private_data:on" && ` +
       `sudo log config --subsystem "com.apple.fseventsd" --mode "level:debug"`;
-
+  
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
         console.error(
@@ -281,12 +283,12 @@ export class Monitor_Text extends Monitor {
       );
     });
   }
-
+  
   async check_fsevents_mac() {
     const command =
       `log show --predicate 'eventMessage contains "${this.file}"' ` +
       `--style json --last 1m --info --debug`;
-
+  
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
         console.error(
@@ -296,37 +298,49 @@ export class Monitor_Text extends Monitor {
         );
         return;
       }
-
+  
       try {
         const logs = JSON.parse(stdout);
         const latestEvent = logs.find(
           (e: any) =>
             e.eventMessage.includes(this.file) && e.eventType === 'open',
         );
-
+  
         if (latestEvent) {
           const accessDate = new Date(latestEvent.timestamp);
           if (accessDate > this.last_access_time) {
             this.last_access_time = accessDate;
-
+  
             if (this.not_first_log) {
               const processInfo = latestEvent.process.split('[')[0].trim();
-              const pidMatch = latestEvent.process.match(/\[(\d+)\]/);
+              const pidMatch = latestEvent.process.match(/$$(\d+)$$/);
               const pid = pidMatch ? pidMatch[1] : 'unknown';
-
+  
               console.log(`Token accessed by ${processInfo} (PID: ${pid})`);
               const postData = {
-                token_id: 'test',
-                access_time: accessDate.getTime(),
-                accessor: `${processInfo}/${pid}`,
-                event_data: JSON.stringify(latestEvent, null, 2),
+                token_id: this.token.token_id,
+                alert_epoch: accessDate.getTime(),
+                accessed_by: os.hostname() + '/' + os.userInfo().username,
+                log: JSON.stringify(latestEvent),
               };
-
               fetch(`http://${process.env.SERVER_IP}:3000/api/alerts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(postData),
-              }).then(/* ... */);
+              }).then((response) => {
+                if (response.ok) {
+                  console.log(
+                    Constants.TEXT_GREEN_COLOR,
+                    'Alert sent successfully',
+                  );
+                } else {
+                  console.error(
+                    Constants.TEXT_RED_COLOR,
+                    'Error sending alert:',
+                    response.status,
+                  );
+                }
+              });
             }
           } else {
             this.not_first_log = true;
