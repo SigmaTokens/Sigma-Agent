@@ -15,7 +15,8 @@
     "prod": "concurrently \"npm run prod-server\"",
     "dev-server": "npm run dev",
     "start-dev": "node start.js dev",
-    "start-prod": "node start.js prod"
+    "start-prod": "node start.js prod",
+    "start-prod-linux": "sudo node start.js prod"
   },
   "repository": {
     "type": "git",
