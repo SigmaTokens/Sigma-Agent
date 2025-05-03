@@ -165,6 +165,7 @@ function install_deps() {
     console.log('test3')
     console.log('[+] Updating deps for agent~~~');
     if(process.platform === 'linux') {
+      console.log('test4')
       execSync('sudo npm install', { stdio: 'inherit' });
     }else {
       execSync('npm install', { stdio: 'inherit' });
