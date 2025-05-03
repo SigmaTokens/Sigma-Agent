@@ -167,7 +167,7 @@ function install_deps() {
 
     if(process.platform === 'linux') {
       console.log('test4')
-      execSync('pwd && npm --prefix Sigma-Agent install', { stdio: 'inherit' });
+      execSync('cd .. && npm --prefix Sigma-Agent install', { stdio: 'inherit' });
     } else{
       console.log('test5')
       execSync('npm install', { stdio: 'inherit' });
