@@ -164,14 +164,8 @@ function install_deps() {
   try {
     console.log('test3')
     console.log('[+] Updating deps for agent~~~');
-
-    if(process.platform === 'linux') {
-      console.log('test4')
-      execSync('cd .. && npm --prefix Sigma-Agent install', { stdio: 'inherit' });
-    } else{
-      console.log('test5')
-      execSync('npm install', { stdio: 'inherit' });
-    }
+    
+    execSync('npm install', { stdio: 'inherit' });
 
     console.log('[+] Deps update complete!');
   } catch (error) {
