@@ -164,13 +164,10 @@ function install_deps() {
   try {
     console.log('test3')
     console.log('[+] Updating deps for agent~~~');
-    if(process.platform === 'linux') {
-      console.log('test4')
-      execSync('sudo npm install');
-    }else {
+    if(process.platform !== 'linux') {
       execSync('npm install', { stdio: 'inherit' });
     }
-
+    
     console.log('[+] Deps update complete!');
   } catch (error) {
     console.error('[-] Failed to update deps:', error.message);
