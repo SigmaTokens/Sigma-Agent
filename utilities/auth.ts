@@ -13,10 +13,6 @@ export async function isAdmin(): Promise<boolean> {
 }
 
 export async function isFromManager(origin: string): Promise<boolean> {
-  if (
-    origin ||
-    origin.startsWith(process.env.SERVER_IP + ':' + process.env.SERVER_PORT)
-  )
-    return true;
+  if (origin || origin.startsWith(process.env.MANAGER_IP + ':' + process.env.MANAGER_PORT)) return true;
   return false;
 }

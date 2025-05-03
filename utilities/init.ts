@@ -3,7 +3,7 @@ import { Honeytoken_Text } from '../classes/honeytoken_text.ts';
 
 export async function initHoneytokens(): Promise<void> {
   try {
-    const serverUrl = `http://${process.env.SERVER_IP}:3000/api/honeytokens/agent`;
+    const serverUrl = `http://${process.env.MANAGER_IP}:3000/api/honeytokens/agent`;
 
     const requestBody = { agent_ip: '127.0.0.1', agent_port: 9007 };
 
@@ -49,9 +49,7 @@ export async function initHoneytokens(): Promise<void> {
       }
     }
 
-    console.log(
-      `Successfully initialized ${Globals.tokens.length} honeytokens`,
-    );
+    console.log(`Successfully initialized ${Globals.tokens.length} honeytokens`);
   } catch (error) {
     console.error('Failed to initialize honeytokens:', error);
     Globals.tokens = []; // Reset to empty array on failure
