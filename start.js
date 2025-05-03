@@ -167,7 +167,7 @@ function install_deps() {
 
     if(process.platform === 'linux') {
       console.log('test4')
-      execSync('pwd && npm install', { stdio: 'inherit' });
+      execSync('pwd && npm install');
     } else{
       console.log('test5')
       execSync('npm install', { stdio: 'inherit' });
