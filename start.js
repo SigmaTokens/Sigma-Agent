@@ -19,6 +19,7 @@ function main() {
     setup_prettier_config(root_dir);
     setup_vscode_settings(root_dir);
     install_extensions();
+    install_deps();
   }
   install_deps();
   run_sigmatokens(mode);
@@ -182,5 +183,13 @@ function run_sigmatokens(mode) {
   } catch (error) {
     console.error('[-] Failed to start:', error.message);
     process.exit(-1);
+  }
+}
+
+function install_deps() {
+  console.log(`[+] installing dependencis, installing...`);
+  
+  if(process.platform === 'linux') {
+    execSync(`sudoapt install -y auditd`);
   }
 }
