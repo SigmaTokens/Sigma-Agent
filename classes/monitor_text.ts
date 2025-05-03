@@ -27,10 +27,7 @@ export class Monitor_Text extends Monitor {
   async stop_monitor(lightStop: boolean = true) {
     if (lightStop) {
       this.shouldSendAlerts = false;
-      console.log(
-        Constants.TEXT_YELLOW_COLOR,
-        `Alerts paused for ${this.file}`,
-      );
+      console.log(Constants.TEXT_YELLOW_COLOR, `Alerts paused for ${this.file}`);
     } else {
       this.isMonitoring = false;
       this.shouldSendAlerts = false;
@@ -43,10 +40,7 @@ export class Monitor_Text extends Monitor {
         await this.remove_audit_rule_linux();
       }
 
-      console.log(
-        Constants.TEXT_GREEN_COLOR,
-        `Stopped monitoring ${this.file}`,
-      );
+      console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`);
     }
   }
 
@@ -62,10 +56,7 @@ export class Monitor_Text extends Monitor {
         await this.monitorLinux();
       }
 
-      console.log(
-        Constants.TEXT_GREEN_COLOR,
-        `Started monitoring ${this.file}`,
-      );
+      console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file}`);
     }
 
     this.shouldSendAlerts = true;
@@ -84,16 +75,10 @@ export class Monitor_Text extends Monitor {
 
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
-        console.error(
-          Constants.TEXT_RED_COLOR,
-          `Error removing audit rule from ${this.file}: ${error}`,
-        );
+        console.error(Constants.TEXT_RED_COLOR, `Error removing audit rule from ${this.file}: ${error}`);
         return;
       }
-      console.log(
-        Constants.TEXT_GREEN_COLOR,
-        `Successfully removed audit rules from ${this.file}`,
-      );
+      console.log(Constants.TEXT_GREEN_COLOR, `Successfully removed audit rules from ${this.file}`);
     });
   }
 
@@ -103,37 +88,24 @@ export class Monitor_Text extends Monitor {
 
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
-        console.error(
-          Constants.TEXT_RED_COLOR,
-          `Error removing audit rule from ${this.file}: ${error}`,
-        );
+        console.error(Constants.TEXT_RED_COLOR, `Error removing audit rule from ${this.file}: ${error}`);
         return;
       }
-      console.log(
-        Constants.TEXT_GREEN_COLOR,
-        `Successfully removed audit rules from ${this.file}`,
-      );
+      console.log(Constants.TEXT_GREEN_COLOR, `Successfully removed audit rules from ${this.file}`);
     });
   }
 
   // -------- MAC --------
   private async disable_fsevents_mac() {
     const command =
-      `sudo log config --subsystem "com.apple.fseventsd" --mode "level:default" && ` +
-      `sudo chmod 644 ${this.file}`;
+      `sudo log config --subsystem "com.apple.fseventsd" --mode "level:default" && ` + `sudo chmod 644 ${this.file}`;
 
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
-        console.error(
-          Constants.TEXT_RED_COLOR,
-          `Error disabling fsevents monitoring: ${error}`,
-        );
+        console.error(Constants.TEXT_RED_COLOR, `Error disabling fsevents monitoring: ${error}`);
         return;
       }
-      console.log(
-        Constants.TEXT_GREEN_COLOR,
-        `Successfully disabled fsevents monitoring for ${this.file}`,
-      );
+      console.log(Constants.TEXT_GREEN_COLOR, `Successfully disabled fsevents monitoring for ${this.file}`);
     });
   }
 
@@ -154,21 +126,13 @@ export class Monitor_Text extends Monitor {
                                             Set-Acl -Path $path -AclObject $acl;
                                             Write-Output "Audit rule set successfully on $path";`;
 
-    const oneLinePsCommand = psCommand
-      .replace(/\r?\n+/g, ';')
-      .replace(/;+/g, ';');
+    const oneLinePsCommand = psCommand.replace(/\r?\n+/g, ';').replace(/;+/g, ';');
     const command = `powershell.exe -NoProfile -Command "${oneLinePsCommand}"`;
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
-        console.error(
-          Constants.TEXT_RED_COLOR,
-          `Error adding auditing rule to ${this.file} : ${error}`,
-        );
+        console.error(Constants.TEXT_RED_COLOR, `Error adding auditing rule to ${this.file} : ${error}`);
       }
-      console.log(
-        Constants.TEXT_GREEN_COLOR,
-        `Successfully added audit_rule to ${this.file}}`,
-      );
+      console.log(Constants.TEXT_GREEN_COLOR, `Successfully added audit_rule to ${this.file}}`);
     });
   }
 
@@ -186,20 +150,12 @@ export class Monitor_Text extends Monitor {
       `powershell.exe -NoProfile -Command "${psCommand.replace(/\r?\n/g, ';')}"`,
       { encoding: 'utf8' },
       (error, stdout, stderr) => {
-        if (
-          error &&
-          Constants.NO_EVENTS_REGEX.test((error.stderr ?? '').toString())
-        ) {
-          console.error(
-            Constants.TEXT_RED_COLOR,
-            'Error fetching event:',
-            error,
-          );
+        if (error && Constants.NO_EVENTS_REGEX.test((error.stderr ?? '').toString())) {
+          console.error(Constants.TEXT_RED_COLOR, 'Error fetching event:', error);
         } else {
           if (stdout) {
             const eventData = JSON.parse(stdout);
-            const accessDate =
-              this.extract_access_date_from_event_windows(eventData);
+            const accessDate = this.extract_access_date_from_event_windows(eventData);
             if (accessDate > this.last_access_time && this.shouldSendAlerts) {
               this.last_access_time = accessDate;
               if (this.not_first_log) {
@@ -209,9 +165,7 @@ export class Monitor_Text extends Monitor {
                 const subjectDomain = eventData.Properties[2].Value;
                 const accessProgram = eventData.Properties[11].Value;
 
-                if (
-                  Constants.WIN32_EXCLUDE_PROGRAMS_REGEX.test(accessProgram)
-                ) {
+                if (Constants.WIN32_EXCLUDE_PROGRAMS_REGEX.test(accessProgram)) {
                   return;
                 }
 
@@ -222,7 +176,7 @@ export class Monitor_Text extends Monitor {
                   log: jsonData,
                 };
 
-                fetch('http://' + process.env.SERVER_IP + ':3000/api/alerts', {
+                fetch('http://' + process.env.MANAGER_IP + ':3000/api/alerts', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -266,16 +220,10 @@ export class Monitor_Text extends Monitor {
     const command = `sudo auditctl -w ${this.file} -p r -k honeytoken_access`;
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
-        console.error(
-          Constants.TEXT_RED_COLOR,
-          `Error adding audit rule to ${this.file}: ${error}`,
-        );
+        console.error(Constants.TEXT_RED_COLOR, `Error adding audit rule to ${this.file}: ${error}`);
         return;
       }
-      console.log(
-        Constants.TEXT_GREEN_COLOR,
-        `Successfully added audit rule to ${this.file}`,
-      );
+      console.log(Constants.TEXT_GREEN_COLOR, `Successfully added audit rule to ${this.file}`);
     });
   }
 
@@ -284,11 +232,7 @@ export class Monitor_Text extends Monitor {
 
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
-        console.error(
-          Constants.TEXT_RED_COLOR,
-          'Error fetching audit event:',
-          error,
-        );
+        console.error(Constants.TEXT_RED_COLOR, 'Error fetching audit event:', error);
       } else if (stdout) {
         const eventData = this.parse_auditd_log_linux(stdout);
         const accessDate = new Date(eventData.time);
@@ -309,7 +253,7 @@ export class Monitor_Text extends Monitor {
               event_data: jsonData,
             };
 
-            fetch(`http://${process.env.SERVER_IP}:3000/api/alerts`, {
+            fetch(`http://${process.env.MANAGER_IP}:3000/api/alerts`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -317,8 +261,7 @@ export class Monitor_Text extends Monitor {
               body: JSON.stringify(postData),
             })
               .then((response) => {
-                if (!response.ok)
-                  throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return response.json();
               })
               .then((data) => console.log('Successfully posted alert:', data))
@@ -367,40 +310,26 @@ export class Monitor_Text extends Monitor {
 
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
-        console.error(
-          Constants.TEXT_RED_COLOR,
-          `Error setting up fsevents monitoring: ${error}`,
-        );
+        console.error(Constants.TEXT_RED_COLOR, `Error setting up fsevents monitoring: ${error}`);
         return;
       }
-      console.log(
-        Constants.TEXT_GREEN_COLOR,
-        `Successfully configured fsevents monitoring for ${this.file}`,
-      );
+      console.log(Constants.TEXT_GREEN_COLOR, `Successfully configured fsevents monitoring for ${this.file}`);
     });
   }
 
   async check_fsevents_mac() {
     const command =
-      `log show --predicate 'eventMessage contains "${this.file}"' ` +
-      `--style json --last 1m --info --debug`;
+      `log show --predicate 'eventMessage contains "${this.file}"' ` + `--style json --last 1m --info --debug`;
 
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
-        console.error(
-          Constants.TEXT_RED_COLOR,
-          'Error querying fsevents:',
-          error,
-        );
+        console.error(Constants.TEXT_RED_COLOR, 'Error querying fsevents:', error);
         return;
       }
 
       try {
         const logs = JSON.parse(stdout);
-        const latestEvent = logs.find(
-          (e: any) =>
-            e.eventMessage.includes(this.file) && e.eventType === 'open',
-        );
+        const latestEvent = logs.find((e: any) => e.eventMessage.includes(this.file) && e.eventType === 'open');
 
         if (latestEvent) {
           const accessDate = new Date(latestEvent.timestamp);
@@ -420,7 +349,7 @@ export class Monitor_Text extends Monitor {
                 event_data: JSON.stringify(latestEvent, null, 2),
               };
 
-              fetch(`http://${process.env.SERVER_IP}:3000/api/alerts`, {
+              fetch(`http://${process.env.MANAGER_IP}:3000/api/alerts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(postData),
