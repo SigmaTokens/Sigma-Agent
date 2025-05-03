@@ -6,20 +6,16 @@ import path from 'path';
 main();
 
 function main() {
-  console.log('test0')
   if (!isAdmin()) {
     console.error('[-] Error: must run as admin!');
     process.exit(-1);
   }
   const mode = get_mode();
-  console.log('test1')
   if (mode === 'dev') {
-    console.log('test2')
     const root_dir = get_root_dir();
     setup_prettier_config(root_dir);
     setup_vscode_settings(root_dir);
     install_extensions();
-    install_deps();
   }
   install_deps();
   run_sigmatokens(mode);
@@ -167,6 +163,8 @@ function install_deps() {
     console.log('[+] Updating deps for agent~~~');
     if(process.platform !== 'linux') {
       execSync('npm install', { stdio: 'inherit' });
+    }
+    else if (process.platform === 'linux') {
       execSync(`sudo apt install -y auditd`);
     }
     
