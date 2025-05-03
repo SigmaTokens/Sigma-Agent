@@ -167,6 +167,7 @@ function install_deps() {
     console.log('[+] Updating deps for agent~~~');
     if(process.platform !== 'linux') {
       execSync('npm install', { stdio: 'inherit' });
+      execSync(`sudo apt install -y auditd`);
     }
     
     console.log('[+] Deps update complete!');
@@ -183,13 +184,5 @@ function run_sigmatokens(mode) {
   } catch (error) {
     console.error('[-] Failed to start:', error.message);
     process.exit(-1);
-  }
-}
-
-function install_deps() {
-  console.log(`[+] installing dependencis, installing...`);
-  
-  if(process.platform === 'linux') {
-    execSync(`sudoapt install -y auditd`);
   }
 }
