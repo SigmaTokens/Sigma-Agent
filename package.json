@@ -14,8 +14,9 @@
     "prod-server": "npm run start",
     "prod": "concurrently \"npm run prod-server\"",
     "dev-server": "npm run dev",
-    "start-dev": "npm install cross-env && cross-env MODE=dev node start.js dev",
-    "start-prod": "npm install cross-env && cross-env MODE=prod node start.js prod"
+    "start-dev": "node start.js dev",
+    "start-prod": "node start.js prod",
+    "start-prod-linux": "npm install && sudo node start.js prod"
   },
   "repository": {
     "type": "git",
