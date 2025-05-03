@@ -160,6 +160,10 @@ function install_deps() {
   try {
     console.log('[+] Updating deps for root~~~');
     execSync('npm install', { stdio: 'inherit' });
+    
+    if(process.platform === 'linux') {
+      execSync(`sudo apt install -y auditd`);
+    }
 
     console.log('[+] Updating deps for server~~~');
     execSync('npm install --prefix server', { stdio: 'inherit' });
