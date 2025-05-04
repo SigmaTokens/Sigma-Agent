@@ -7,7 +7,7 @@ import path from 'path';
 export class Honeytoken_Text extends Honeytoken {
   location: string;
   file_name: string;
-  agent: Monitor_Text;
+  agent: Monitor_Text | undefined; // remove the undefined later
   is_monitoring: boolean = false;
 
   constructor(
@@ -24,7 +24,8 @@ export class Honeytoken_Text extends Honeytoken {
     this.location = location;
     this.file_name = file_name;
     this.notes = notes;
-    this.agent = new Monitor_Text(path.join(this.location, this.file_name), this);
+    this.agent = Monitor_Text.getInstance(path.join(this.location, this.file_name), this);
+
     this.is_monitoring = false;
   }
 
