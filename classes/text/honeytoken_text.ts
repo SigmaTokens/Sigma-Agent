@@ -1,5 +1,5 @@
-import { HoneytokenType } from '../interfaces/type.ts';
-import { Honeytoken } from './Honeytoken.ts';
+import { HoneytokenType } from '../../interfaces/type.ts';
+import { Honeytoken } from '../abstract/Honeytoken.ts';
 import { Monitor_Text } from './monitor_text.ts';
 import fs from 'fs';
 import path from 'path';

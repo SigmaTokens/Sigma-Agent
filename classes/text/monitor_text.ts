@@ -1,10 +1,11 @@
 import fs from 'fs';
-import { Monitor } from './Monitor.ts';
+import { Monitor } from '../abstract/Monitor.ts';
 import { exec } from 'child_process';
-import { Constants } from '../constants.ts';
-import { isWindows, isMac, isLinux } from '../utilities/host.ts';
-import { sleep, last_501 } from '../utilities/utilities.ts';
+import { Constants } from '../../constants.ts';
+import { isWindows, isMac, isLinux } from '../../utilities/host.ts';
+import { sleep, last_501 } from '../../utilities/utilities.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
+import { Monitor_Text_Windows } from './monitor_text_windows.ts';
 
 export class Monitor_Text extends Monitor {
   file: string;
@@ -13,6 +14,15 @@ export class Monitor_Text extends Monitor {
   not_first_log: boolean;
   shouldSendAlerts: boolean;
   isMonitoring: boolean;
+
+  public static getInstance(file: string, token: Honeytoken_Text): Monitor_Text {
+    if (isWindows()) {
+      return new Monitor_Text_Windows(file, token);
+    } else if (isMac()) {
+    } else if (isLinux()) {
+    }
+    return new Monitor_Text(file, token); // remove this later
+  }
 
   constructor(file: string, token: Honeytoken_Text) {
     super();
