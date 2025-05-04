@@ -3,7 +3,7 @@ import { Monitor } from './Monitor.ts';
 import { exec } from 'child_process';
 import { Constants } from '../constants.ts';
 import { isWindows, isMac, isLinux } from '../utilities/host.ts';
-import { sleep } from '../utilities/utilities.ts';
+import { sleep, last_501 } from '../utilities/utilities.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
 
 export class Monitor_Text extends Monitor {
@@ -217,7 +217,7 @@ export class Monitor_Text extends Monitor {
   }
 
   async add_audit_rule_linux() {
-    const command = `sudo auditctl -w ${this.file} -p r -k honeytoken_access`;
+    const command = `sudo auditctl -w ${this.file} -p rwa -k honeytoken_access`;
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
         console.error(Constants.TEXT_RED_COLOR, `Error adding audit rule to ${this.file}: ${error}`);
@@ -228,7 +228,7 @@ export class Monitor_Text extends Monitor {
   }
 
   async get_latest_event_for_target_linux() {
-    const command = `sudo ausearch -k honeytoken_access -ts recent -l | head -n 1`;
+    const command = `sudo ausearch -k honeytoken_access -ts ${last_501()}`;
 
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
@@ -275,21 +275,38 @@ export class Monitor_Text extends Monitor {
   }
 
   parse_auditd_log_linux(log: string): any {
-    const result: any = {};
+    const entries = log.trim().split('----').map(block => block.trim()).filter(Boolean);
+    const results: any[] = [];
 
-    log.split('\n').forEach((line) => {
-      if (line.startsWith('time->')) {
-        result.time = line.replace('time->', '');
-      } else if (line.includes('uid=')) {
-        const uidMatch = line.match(/uid=(\d+)/);
-        const hostMatch = line.match(/hostname=([^\s]+)/);
+    for (const entry of entries) {
+      const result: any = {};
+      const lines = entry.split('\n');
 
-        result.uid = uidMatch ? uidMatch[1] : 'unknown';
-        result.host = hostMatch ? hostMatch[1] : 'unknown';
+      for (const line of lines) {
+        if (line.startsWith('time->')) {
+          result.time = line.replace('time->', '').trim();
+        } else if (line.includes('type=SYSCALL')) {
+          const uidMatch = line.match(/uid=(\d+)/);
+          const auidMatch = line.match(/auid=(\d+)/);
+          const commMatch = line.match(/comm="([^"]+)"/);
+          const exeMatch = line.match(/exe="([^"]+)"/);
+
+          result.uid = uidMatch ? uidMatch[1] : undefined;
+          result.auid = auidMatch ? auidMatch[1] : undefined;
+          result.command = commMatch ? commMatch[1] : undefined;
+          result.exe = exeMatch ? exeMatch[1] : undefined;
+        } else if (line.includes('type=PATH') && line.includes('nametype=NORMAL')) {
+          const pathMatch = line.match(/name="([^"]+)"/);
+          if (pathMatch) {
+            result.file = pathMatch[1];
+          }
+        }
       }
-    });
 
-    return result;
+      results.push(result);
+    }
+
+    return results;
   }
 
   // -------- MAC --------
