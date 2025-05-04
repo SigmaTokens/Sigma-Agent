@@ -282,7 +282,6 @@ export class Monitor_Text extends Monitor {
     console.log('start parse_auditd_log_linux');
     console.log(log);
     const entries = log
-      .trim()
       .split('----')
       .map((block) => block.trim())
       .filter(Boolean);
