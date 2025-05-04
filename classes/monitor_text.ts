@@ -228,6 +228,7 @@ export class Monitor_Text extends Monitor {
   }
 
   async get_latest_event_for_target_linux() {
+    console.log('start get_latest_event_for_target_linux');
     const startTime = await last_501();
     const command = `sudo ausearch -k honeytoken_access -ts ${startTime}`;
 
@@ -278,7 +279,12 @@ export class Monitor_Text extends Monitor {
   }
 
   parse_auditd_log_linux(log: string): any {
-    const entries = log.trim().split('----').map(block => block.trim()).filter(Boolean);
+    console.log('start parse_auditd_log_linux');
+    const entries = log
+      .trim()
+      .split('----')
+      .map((block) => block.trim())
+      .filter(Boolean);
     const results: any[] = [];
 
     for (const entry of entries) {
