@@ -228,47 +228,50 @@ export class Monitor_Text extends Monitor {
   }
 
   async get_latest_event_for_target_linux() {
-    const command = `sudo ausearch -k honeytoken_access -ts ${last_501()}`;
+    const startTime = await last_501();
+    const command = `sudo ausearch -k honeytoken_access -ts ${startTime}`;
 
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
         console.error(Constants.TEXT_RED_COLOR, 'Error fetching audit event:', error);
       } else if (stdout) {
         const eventData = this.parse_auditd_log_linux(stdout);
-        const accessDate = new Date(eventData.time);
+        for (const event of eventData) {
+          const accessDate = new Date(event.time);
 
-        if (accessDate > this.last_access_time && this.shouldSendAlerts) {
-          this.last_access_time = accessDate;
+          if (accessDate > this.last_access_time && this.shouldSendAlerts) {
+            this.last_access_time = accessDate;
 
-          if (this.not_first_log) {
-            const jsonData = JSON.stringify(eventData, null, 2);
-            const subjectAccount = eventData.uid;
-            const subjectDomain = eventData.host;
+            if (this.not_first_log) {
+              const jsonData = JSON.stringify(event, null, 2);
+              const subjectAccount = event.uid;
+              const subjectDomain = event.host;
 
-            console.log('Token was accessed by:', subjectAccount);
-            const postData = {
-              token_id: 'test',
-              access_time: accessDate.getTime(),
-              accessor: `${subjectDomain}/${subjectAccount}`,
-              event_data: jsonData,
-            };
+              console.log('Token was accessed by:', subjectAccount);
+              const postData = {
+                token_id: 'test',
+                access_time: accessDate.getTime(),
+                accessor: `${subjectDomain}/${subjectAccount}`,
+                event_data: jsonData,
+              };
 
-            fetch(`http://${process.env.MANAGER_IP}:3000/api/alerts`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(postData),
-            })
-              .then((response) => {
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return response.json();
+              fetch(`http://${process.env.MANAGER_IP}:3000/api/alerts`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(postData),
               })
-              .then((data) => console.log('Successfully posted alert:', data))
-              .catch((error) => console.error('Error posting alert:', error));
+                .then((response) => {
+                  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                  return response.json();
+                })
+                .then((data) => console.log('Successfully posted alert:', data))
+                .catch((error) => console.error('Error posting alert:', error));
+            }
+          } else {
+            this.not_first_log = true;
           }
-        } else {
-          this.not_first_log = true;
         }
       }
     });
