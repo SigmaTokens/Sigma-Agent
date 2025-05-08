@@ -1,11 +1,10 @@
-import fs from 'fs';
 import { Monitor } from '../abstract/Monitor.ts';
-import { exec } from 'child_process';
 import { Constants } from '../../constants.ts';
 import { isWindows, isMac, isLinux } from '../../utilities/host.ts';
-import { sleep, last_501 } from '../../utilities/utilities.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
 import { Monitor_Text_Windows } from './monitor_text_windows.ts';
+import { Monitor_Text_Linux } from './monitor_test_linux.ts';
+import { Monitor_Text_Mac } from './monitor_text_mac.ts';
 
 export abstract class Monitor_Text extends Monitor {
   file: string;
@@ -15,13 +14,13 @@ export abstract class Monitor_Text extends Monitor {
   shouldSendAlerts: boolean;
   isMonitoring: boolean;
 
-  public static getInstance(file: string, token: Honeytoken_Text): Monitor_Text | undefined {
+  public static getInstance(file: string, token: Honeytoken_Text): Monitor_Text {
     if (isWindows()) {
       return new Monitor_Text_Windows(file, token);
     } else if (isMac()) {
-      // TODO
-    } else if (isLinux()) {
-      // TODO
+      return new Monitor_Text_Mac(file, token);
+    } else {
+      return new Monitor_Text_Linux(file, token);
     }
   }
 
@@ -42,233 +41,12 @@ export abstract class Monitor_Text extends Monitor {
     } else {
       this.isMonitoring = false;
       this.shouldSendAlerts = false;
-
-      if (isMac()) {
-        await this.disable_fsevents_mac();
-      } else if (isLinux()) {
-        await this.remove_audit_rule_linux();
-      }
-      console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`);
     }
   }
 
   async start_monitor() {
     if (!this.isMonitoring) {
       this.isMonitoring = true;
-
-      if (isMac()) {
-        await this.monitorMac();
-      } else if (isLinux()) {
-        await this.monitorLinux();
-      }
-
-      console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file}`);
     }
-
-    // Remove later these two lines
-    this.shouldSendAlerts = true;
-    console.log(Constants.TEXT_GREEN_COLOR, `Alerts enabled for ${this.file}`);
-  }
-
-  // -------- LINUX --------
-  private async remove_audit_rule_linux() {
-    const command = `sudo auditctl -W ${this.file} -k honeytoken_access`;
-
-    exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
-      if (error) {
-        console.error(Constants.TEXT_RED_COLOR, `Error removing audit rule from ${this.file}: ${error}`);
-        return;
-      }
-      console.log(Constants.TEXT_GREEN_COLOR, `Successfully removed audit rules from ${this.file}`);
-    });
-  }
-
-  // -------- MAC --------
-  private async disable_fsevents_mac() {
-    const command =
-      `sudo log config --subsystem "com.apple.fseventsd" --mode "level:default" && ` + `sudo chmod 644 ${this.file}`;
-
-    exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
-      if (error) {
-        console.error(Constants.TEXT_RED_COLOR, `Error disabling fsevents monitoring: ${error}`);
-        return;
-      }
-      console.log(Constants.TEXT_GREEN_COLOR, `Successfully disabled fsevents monitoring for ${this.file}`);
-    });
-  }
-
-  async add_audit_rule_linux() {
-    const command = `sudo auditctl -w ${this.file} -p rwa -k honeytoken_access`;
-    exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
-      if (error) {
-        console.error(Constants.TEXT_RED_COLOR, `Error adding audit rule to ${this.file}: ${error}`);
-        return;
-      }
-      console.log(Constants.TEXT_GREEN_COLOR, `Successfully added audit rule to ${this.file}`);
-    });
-  }
-
-  async get_latest_event_for_target_linux() {
-    console.log('start get_latest_event_for_target_linux');
-    const startTime = await last_501();
-    const command = `sudo ausearch -k honeytoken_access -ts ${startTime}`;
-
-    exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
-      if (error) {
-        console.error(Constants.TEXT_RED_COLOR, 'Error fetching audit event:', error);
-      } else if (stdout) {
-        const eventData = this.parse_auditd_log_linux(stdout);
-        for (const event of eventData) {
-          const accessDate = new Date(event.time);
-
-          if (accessDate > this.last_access_time && this.shouldSendAlerts) {
-            this.last_access_time = accessDate;
-
-            if (this.not_first_log) {
-              const jsonData = JSON.stringify(event, null, 2);
-              const subjectAccount = event.uid;
-              const subjectDomain = event.host;
-
-              console.log('Token was accessed by:', subjectAccount);
-              const postData = {
-                token_id: 'test',
-                access_time: accessDate.getTime(),
-                accessor: `${subjectDomain}/${subjectAccount}`,
-                event_data: jsonData,
-              };
-
-              fetch(`http://${process.env.MANAGER_IP}:3000/api/alerts`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(postData),
-              })
-                .then((response) => {
-                  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                  return response.json();
-                })
-                .then((data) => console.log('Successfully posted alert:', data))
-                .catch((error) => console.error('Error posting alert:', error));
-            }
-          } else {
-            this.not_first_log = true;
-          }
-        }
-      }
-    });
-  }
-
-  parse_auditd_log_linux(log: string): any {
-    console.log('start parse_auditd_log_linux');
-    console.log(log);
-    const entries = log
-      .split('----')
-      .map((block) => block.trim())
-      .filter(Boolean);
-    const results: any[] = [];
-
-    for (const entry of entries) {
-      const result: any = {};
-      const lines = entry.split('\n');
-
-      for (const line of lines) {
-        if (line.startsWith('time->')) {
-          result.time = line.replace('time->', '').trim();
-        } else if (line.includes('type=SYSCALL')) {
-          const uidMatch = line.match(/uid=(\d+)/);
-          const auidMatch = line.match(/auid=(\d+)/);
-          const commMatch = line.match(/comm="([^"]+)"/);
-          const exeMatch = line.match(/exe="([^"]+)"/);
-
-          result.uid = uidMatch ? uidMatch[1] : undefined;
-          result.auid = auidMatch ? auidMatch[1] : undefined;
-          result.command = commMatch ? commMatch[1] : undefined;
-          result.exe = exeMatch ? exeMatch[1] : undefined;
-        } else if (line.includes('type=PATH') && line.includes('nametype=NORMAL')) {
-          const pathMatch = line.match(/name="([^"]+)"/);
-          if (pathMatch) {
-            result.file = pathMatch[1];
-          }
-        }
-      }
-
-      results.push(result);
-    }
-
-    return results;
-  }
-
-  // -------- MAC --------
-  async monitorMac() {
-    await this.enable_fsevents_mac();
-    while (true) {
-      await this.check_fsevents_mac();
-      await sleep(500);
-    }
-  }
-
-  async enable_fsevents_mac() {
-    const command =
-      `sudo touch ${this.file} && ` +
-      `sudo chmod 444 ${this.file} && ` +
-      `sudo log config --mode "private_data:on" && ` +
-      `sudo log config --subsystem "com.apple.fseventsd" --mode "level:debug"`;
-
-    exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
-      if (error) {
-        console.error(Constants.TEXT_RED_COLOR, `Error setting up fsevents monitoring: ${error}`);
-        return;
-      }
-      console.log(Constants.TEXT_GREEN_COLOR, `Successfully configured fsevents monitoring for ${this.file}`);
-    });
-  }
-
-  async check_fsevents_mac() {
-    const command =
-      `log show --predicate 'eventMessage contains "${this.file}"' ` + `--style json --last 1m --info --debug`;
-
-    exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
-      if (error) {
-        console.error(Constants.TEXT_RED_COLOR, 'Error querying fsevents:', error);
-        return;
-      }
-
-      try {
-        const logs = JSON.parse(stdout);
-        const latestEvent = logs.find((e: any) => e.eventMessage.includes(this.file) && e.eventType === 'open');
-
-        if (latestEvent) {
-          const accessDate = new Date(latestEvent.timestamp);
-          if (accessDate > this.last_access_time && this.shouldSendAlerts) {
-            this.last_access_time = accessDate;
-
-            if (this.not_first_log) {
-              const processInfo = latestEvent.process.split('[')[0].trim();
-              const pidMatch = latestEvent.process.match(/\[(\d+)\]/);
-              const pid = pidMatch ? pidMatch[1] : 'unknown';
-
-              console.log(`Token accessed by ${processInfo} (PID: ${pid})`);
-              const postData = {
-                token_id: 'test',
-                access_time: accessDate.getTime(),
-                accessor: `${processInfo}/${pid}`,
-                event_data: JSON.stringify(latestEvent, null, 2),
-              };
-
-              fetch(`http://${process.env.MANAGER_IP}:3000/api/alerts`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(postData),
-              }).then();
-            }
-          } else {
-            this.not_first_log = true;
-          }
-        }
-      } catch (parseError) {
-        console.error('Error parsing fsevents log:', parseError);
-      }
-    });
   }
 }

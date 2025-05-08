@@ -10,7 +10,7 @@ export class Monitor_Text_Windows extends Monitor_Text {
   }
 
   async stop_monitor(lightStop: boolean = true) {
-    super.stop_monitor();
+    super.stop_monitor(lightStop);
     await this.remove_audit_rule_windows();
     console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`);
   }
@@ -24,7 +24,6 @@ export class Monitor_Text_Windows extends Monitor_Text {
     console.log(Constants.TEXT_GREEN_COLOR, `Alerts enabled for ${this.file}`);
   }
 
-  // -------- WINDOWS --------
   private async remove_audit_rule_windows() {
     const psCommand = `$path = '${this.file}';
                       $acl = Get-Acl $path;
@@ -43,7 +42,6 @@ export class Monitor_Text_Windows extends Monitor_Text {
     });
   }
 
-  // -------- WINDOWS --------
   async monitorWindows() {
     await this.add_audit_rule_windows();
     while (true) {
@@ -75,15 +73,6 @@ export class Monitor_Text_Windows extends Monitor_Text {
     const millis = parseInt(match[1], 10);
     const accessDate = new Date(millis);
     return accessDate;
-  }
-
-  // -------- LINUX --------
-  async monitorLinux() {
-    await this.add_audit_rule_linux();
-    while (true) {
-      await this.get_latest_event_for_target_linux();
-      await sleep(500);
-    }
   }
 
   async get_latest_event_for_target_windows() {

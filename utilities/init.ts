@@ -5,7 +5,7 @@ export async function initHoneytokens(): Promise<void> {
   try {
     const serverUrl = `http://${process.env.MANAGER_IP}:3000/api/honeytokens/agent`;
 
-    const requestBody = { agent_ip: '127.0.0.1', agent_port: 9007 };
+    const requestBody = { agent_ip: '127.0.0.1', agent_port: 9007 }; //TODO: needs to change this ?!
 
     const response = await fetch(serverUrl, {
       method: 'POST',
@@ -25,13 +25,10 @@ export async function initHoneytokens(): Promise<void> {
       throw new Error('Invalid response format: expected array of honeytokens');
     }
 
-    // Clear existing tokens before adding new ones
     Globals.tokens = [];
 
-    // Validate and add tokens
     for (const tokenData of tokens) {
       try {
-        // Create new Honeytoken_Text instance instead of type assertion
         const token = new Honeytoken_Text(
           tokenData.token_id,
           tokenData.group_id,
@@ -45,14 +42,13 @@ export async function initHoneytokens(): Promise<void> {
         Globals.tokens.push(token);
       } catch (tokenError) {
         console.error('Failed to initialize token:', tokenError);
-        // Continue with next token even if one fails
       }
     }
 
     console.log(`Successfully initialized ${Globals.tokens.length} honeytokens`);
   } catch (error) {
     console.error('Failed to initialize honeytokens:', error);
-    Globals.tokens = []; // Reset to empty array on failure
-    throw error; // Re-throw if you want calling code to handle the error
+    Globals.tokens = [];
+    throw error;
   }
 }

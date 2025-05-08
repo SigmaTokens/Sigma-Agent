@@ -7,7 +7,7 @@ import path from 'path';
 export class Honeytoken_Text extends Honeytoken {
   location: string;
   file_name: string;
-  agent: Monitor_Text | undefined; // remove the undefined later
+  agent: Monitor_Text;
   is_monitoring: boolean = false;
 
   constructor(
