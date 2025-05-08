@@ -246,9 +246,7 @@ export class Monitor_Text extends Monitor {
             if (this.not_first_log) {
               const jsonData = JSON.stringify(event, null, 2);
               const subjectAccount = event.uid;
-              exec(`id -un ${subjectAccount}`, { encoding: 'utf8' }, (error, stdout, stderr) => {
-                if (stdout) {
-                  const subjectDomain = stdout.trim();
+              const subjectDomain = event.host;
 
               console.log('Token was accessed by:', subjectAccount);
               const postData = {
@@ -271,7 +269,7 @@ export class Monitor_Text extends Monitor {
                 })
                 .then((data) => console.log('Successfully posted alert:', data))
                 .catch((error) => console.error('Error posting alert:', error));
-              }});}
+            }
           } else {
             this.not_first_log = true;
           }
@@ -300,6 +298,13 @@ export class Monitor_Text extends Monitor {
           const auidMatch = line.match(/auid=(\d+)/);
 
           result.uid = uidMatch ? uidMatch[1] : undefined;
+          exec(`id -un ${result.uid}`, { encoding: 'utf8' }, (error, stdout, stderr) => {
+            if (stdout) {
+              const subjectAccount = stdout.trim();
+              result.host = subjectAccount;
+            }
+          });
+          
           result.auid = auidMatch ? auidMatch[1] : undefined;
         } else if (line.includes('type=PATH') && line.includes('nametype=NORMAL')) {
           const pathMatch = line.match(/name="([^"]+)"/);
