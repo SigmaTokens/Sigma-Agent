@@ -251,8 +251,8 @@ export class Monitor_Text extends Monitor {
               const postData = {
                 token_id: this.token.token_id,
                 alert_epoch: accessDate.getTime(),
-                accessed_by: `${subjectDomain}/${subjectAccount}`,
-                event_data: jsonData,
+                accessed_by: subjectDomain + '/' + subjectAccount,
+                log: jsonData,
               };
 
               fetch(`http://${process.env.MANAGER_IP}:3000/api/alerts`, {
