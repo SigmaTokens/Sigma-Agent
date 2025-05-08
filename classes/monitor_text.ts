@@ -226,70 +226,93 @@ export class Monitor_Text extends Monitor {
       console.log(Constants.TEXT_GREEN_COLOR, `Successfully added audit rule to ${this.file}`);
     });
   }
-
+  
   async get_latest_event_for_target_linux() {
-    const command = 'sudo ausearch -k honeytoken_access -ts recent -l | head -n 1';
+    console.log('start get_latest_event_for_target_linux');
+    const startTime = await last_501();
+    const command = `sudo ausearch -k honeytoken_access -ts ${startTime}`;
 
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
         console.error(Constants.TEXT_RED_COLOR, 'Error fetching audit event:', error);
       } else if (stdout) {
         const eventData = this.parse_auditd_log_linux(stdout);
-        const accessDate = new Date(eventData.time);
+        for (const event of eventData) {
+          const accessDate = new Date(event.time);
 
-        if (accessDate > this.last_access_time && this.shouldSendAlerts) {
-          this.last_access_time = accessDate;
+          if (accessDate > this.last_access_time && this.shouldSendAlerts) {
+            this.last_access_time = accessDate;
 
-          if (this.not_first_log) {
-            const jsonData = JSON.stringify(eventData, null, 2);
-            const subjectAccount = eventData.uid;
-            const subjectDomain = eventData.host;
+            if (this.not_first_log) {
+              const jsonData = JSON.stringify(event, null, 2);
+              const subjectAccount = event.uid;
+              exec(`id -un ${subjectAccount}`, { encoding: 'utf8' }, (error, stdout, stderr) => {
+                if (stdout) {
+                  const subjectDomain = stdout.trim();
 
-            console.log('Token was accessed by:', subjectAccount);
-            const postData = {
-              token_id: 'test',
-              access_time: accessDate.getTime(),
-              accessor: `${subjectDomain}/${subjectAccount}`,
-              event_data: jsonData,
-            };
+              console.log('Token was accessed by:', subjectAccount);
+              const postData = {
+                token_id: this.token.token_id,
+                access_time: accessDate.getTime(),
+                accessor: `${subjectDomain}/${subjectAccount}`,
+                event_data: jsonData,
+              };
 
-            fetch(`http://${process.env.MANAGER_IP}:3000/api/alerts`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(postData),
-            })
-              .then((response) => {
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return response.json();
+              fetch(`http://${process.env.MANAGER_IP}:3000/api/alerts`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(postData),
               })
-              .then((data) => console.log('Successfully posted alert:', data))
-              .catch((error) => console.error('Error posting alert:', error));
+                .then((response) => {
+                  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                  return response.json();
+                })
+                .then((data) => console.log('Successfully posted alert:', data))
+                .catch((error) => console.error('Error posting alert:', error));
+              }});}
+          } else {
+            this.not_first_log = true;
           }
-        } else {
-          this.not_first_log = true;
         }
       }
     });
   }
 
   parse_auditd_log_linux(log: string): any {
-    const result: any = {};
+    console.log('start parse_auditd_log_linux');
+    
+    const entries = log
+      .split('----')
+    const results: any[] = [];
 
-    log.split('\n').forEach((line) => {
-      if (line.startsWith('time->')) {
-        result.time = line.replace('time->', '');
-      } else if (line.includes('uid=')) {
-        const uidMatch = line.match(/uid=(\d+)/);
-        const hostMatch = line.match(/hostname=([^\s]+)/);
+    for (const entry of entries) {
+      const result: any = {};
+      const lines = entry.split('\n');
+      console.log("log lines", lines);
 
-        result.uid = uidMatch ? uidMatch[1] : 'unknown';
-        result.host = hostMatch ? hostMatch[1] : 'unknown';
+      for (const line of lines) {
+        if (line.startsWith('time->')) {
+          result.time = line.replace('time->', '').trim();
+        } else if (line.includes('type=SYSCALL')) {
+          const uidMatch = line.match(/uid=(\d+)/);
+          const auidMatch = line.match(/auid=(\d+)/);
+
+          result.uid = uidMatch ? uidMatch[1] : undefined;
+          result.auid = auidMatch ? auidMatch[1] : undefined;
+        } else if (line.includes('type=PATH') && line.includes('nametype=NORMAL')) {
+          const pathMatch = line.match(/name="([^"]+)"/);
+          if (pathMatch) {
+            result.file = pathMatch[1];
+          }
+        }
       }
-    });
 
-    return result;
+      results.push(result);
+    }
+
+    return results;
   }
 
   // -------- MAC --------
