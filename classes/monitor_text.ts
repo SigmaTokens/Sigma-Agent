@@ -250,8 +250,8 @@ export class Monitor_Text extends Monitor {
               console.log('Token was accessed by:', subjectAccount);
               const postData = {
                 token_id: this.token.token_id,
-                access_time: accessDate.getTime(),
-                accessor: `${subjectDomain}/${subjectAccount}`,
+                alert_epoch: accessDate.getTime(),
+                accessed_by: `${subjectDomain}/${subjectAccount}`,
                 event_data: jsonData,
               };
 
