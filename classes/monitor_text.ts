@@ -239,7 +239,6 @@ export class Monitor_Text extends Monitor {
         const eventData = this.parse_auditd_log_linux(stdout);
         for (const event of eventData) {
           const accessDate = new Date(event.time);
-          console.log('date:', accessDate, 'real:', event.time, 'last:', this.last_access_time);
           if (accessDate > this.last_access_time && this.shouldSendAlerts) {
             this.last_access_time = accessDate;
 
