@@ -277,7 +277,7 @@ export class Monitor_Text extends Monitor {
     });
   }
 
-  parse_auditd_log_linux(log: string): any {
+  async parse_auditd_log_linux(log: string): Promise<any> {
     console.log('start parse_auditd_log_linux');
     
     const entries = log
@@ -296,11 +296,19 @@ export class Monitor_Text extends Monitor {
           const auidMatch = line.match(/auid=(\d+)/);
 
           result.uid = uidMatch ? uidMatch[1] : undefined;
-          exec(`id -un ${result.uid}`, { encoding: 'utf8' }, (error, stdout, stderr) => {
-            if (stdout) {
-              const subjectAccount = stdout.trim();
-              result.host = subjectAccount;
-            }
+          result.host = await new Promise((resolve, reject) => {
+            exec(`id -un ${result.uid}`, { encoding: 'utf8' }, (error, stdout, stderr) => {
+              if (error) {
+                console.error(Constants.TEXT_RED_COLOR, 'Error fetching hostname:', error);
+                resolve(undefined);
+              } else if (stdout) {
+                const subjectAccount = stdout.trim();
+                console.log('std:', stdout, 'cut:', subjectAccount);
+                resolve(subjectAccount);
+              } else {
+                resolve(undefined);
+              }
+            });
           });
           
           result.auid = auidMatch ? auidMatch[1] : undefined;
