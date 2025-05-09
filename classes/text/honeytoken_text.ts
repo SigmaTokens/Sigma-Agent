@@ -1,5 +1,5 @@
-import { HoneytokenType } from '../interfaces/type.ts';
-import { Honeytoken } from './Honeytoken.ts';
+import { HoneytokenType } from '../../interfaces/type.ts';
+import { Honeytoken } from '../abstract/Honeytoken.ts';
 import { Monitor_Text } from './monitor_text.ts';
 import fs from 'fs';
 import path from 'path';
@@ -24,7 +24,8 @@ export class Honeytoken_Text extends Honeytoken {
     this.location = location;
     this.file_name = file_name;
     this.notes = notes;
-    this.agent = new Monitor_Text(path.join(this.location, this.file_name), this);
+    this.agent = Monitor_Text.getInstance(path.join(this.location, this.file_name), this);
+
     this.is_monitoring = false;
   }
 
