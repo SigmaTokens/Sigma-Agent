@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { Honeytoken_Text } from '../classes/honeytoken_text.ts';
+import { Honeytoken_Text } from '../classes/text/honeytoken_text.ts';
 import { Globals } from '../globals.ts';
 import { isFromManager } from '../utilities/auth.ts';
 
@@ -17,17 +17,7 @@ export function serveHoneytoken() {
         return;
       }
       console.log({ received_data: req.body });
-      const {
-        token_id,
-        group_id,
-        type,
-        file_name,
-        location,
-        grade,
-        expiration_date,
-        notes,
-        data,
-      } = req.body;
+      const { token_id, group_id, type, file_name, location, grade, expiration_date, notes, data } = req.body;
 
       let received_token = null;
 
@@ -54,9 +44,7 @@ export function serveHoneytoken() {
 
         await received_token.startMonitor();
 
-        res
-          .status(200)
-          .json({ success: 'honeytoken has been deployed and monitored!' });
+        res.status(200).json({ success: 'honeytoken has been deployed and monitored!' });
         return;
       }
       res.status(500).json({ failure: 'failed to add token' });
@@ -83,9 +71,7 @@ export function serveHoneytoken() {
       }
 
       // Find and remove the token from Globals.tokens
-      const tokenIndex = Globals.tokens.findIndex(
-        (t) => t.getTokenID() === token_id,
-      );
+      const tokenIndex = Globals.tokens.findIndex((t) => t.getTokenID() === token_id);
       if (tokenIndex === -1) {
         res.status(404).json({ failure: 'Honeytoken not found' });
         return;
@@ -101,10 +87,7 @@ export function serveHoneytoken() {
         console.log('the honeytoken to remove type: ', tokenToRemove.getType());
 
         if (tokenToRemove.getType() === 'text') {
-          const fullPath = path.join(
-            tokenToRemove.getLocation(),
-            tokenToRemove.getFileName(),
-          );
+          const fullPath = path.join(tokenToRemove.getLocation(), tokenToRemove.getFileName());
 
           console.log(`[!] Deleting honeytoken file: ${fullPath}`);
           if (fs.existsSync(fullPath)) {
@@ -126,8 +109,7 @@ export function serveHoneytoken() {
     } catch (error) {
       console.error('Honeytoken removal error:', error);
       res.status(500).json({
-        failure:
-          error instanceof Error ? error.message : 'Internal server error',
+        failure: error instanceof Error ? error.message : 'Internal server error',
       });
       return;
     }
@@ -145,11 +127,7 @@ export function serveHoneytoken() {
       let isMonitoring = false;
 
       for (const token of Globals.tokens) {
-        if (
-          token instanceof Honeytoken_Text &&
-          token.getTokenID() === token_id &&
-          token.isMonitoring()
-        ) {
+        if (token instanceof Honeytoken_Text && token.getTokenID() === token_id && token.isMonitoring()) {
           isMonitoring = true;
           break;
         }
@@ -207,8 +185,7 @@ export function serveHoneytoken() {
     } catch (error) {
       console.error('Monitor startup error:', error);
       res.status(500).json({
-        failure:
-          error instanceof Error ? error.message : 'Internal server error',
+        failure: error instanceof Error ? error.message : 'Internal server error',
       });
       return;
     }
@@ -261,8 +238,7 @@ export function serveHoneytoken() {
     } catch (error) {
       console.error('Stop monitoring error:', error);
       res.status(500).json({
-        failure:
-          error instanceof Error ? error.message : 'Internal server error',
+        failure: error instanceof Error ? error.message : 'Internal server error',
       });
       return;
     }
