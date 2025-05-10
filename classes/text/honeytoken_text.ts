@@ -1,13 +1,17 @@
 import { HoneytokenType } from '../../interfaces/type.ts';
 import { Honeytoken } from '../abstract/Honeytoken.ts';
 import { Monitor_Text } from './monitor_text.ts';
+import { Monitor_Text_Windows } from './monitor_text_windows.ts';
+import { Monitor_Text_Linux } from './monitor_test_linux.ts';
+import { Monitor_Text_Mac } from './monitor_text_mac.ts';
+import { isWindows, isMac, isLinux } from '../../utilities/host.ts';
 import fs from 'fs';
 import path from 'path';
 
 export class Honeytoken_Text extends Honeytoken {
   location: string;
   file_name: string;
-  agent: Monitor_Text;
+  agent!: Monitor_Text;
   is_monitoring: boolean = false;
 
   constructor(
@@ -24,7 +28,16 @@ export class Honeytoken_Text extends Honeytoken {
     this.location = location;
     this.file_name = file_name;
     this.notes = notes;
-    this.agent = Monitor_Text.getInstance(path.join(this.location, this.file_name), this);
+
+    const fullPath = path.join(this.location, this.file_name);
+
+    if (isWindows()) {
+      this.agent = new Monitor_Text_Windows(fullPath, this);
+    } else if (isMac()) {
+      this.agent = new Monitor_Text_Mac(fullPath, this);
+    } else if (isLinux()) {
+      this.agent = new Monitor_Text_Linux(fullPath, this);
+    }
 
     this.is_monitoring = false;
   }
@@ -44,9 +57,7 @@ export class Honeytoken_Text extends Honeytoken {
       }
 
       const fullPath = path.join(this.location, this.file_name);
-
       fs.writeFileSync(fullPath, data, { encoding: 'utf8' });
-
       console.log(`File created at: ${fullPath}`);
     } catch (error) {
       console.error(`Error creating file: ${error}`);
