@@ -81,7 +81,7 @@ export function serveHoneytoken() {
 
       try {
         // Stop monitoring first
-        await tokenToRemove.stopMonitor();
+        tokenToRemove.stopMonitor();
 
         // Remove the physical file if it exists
         console.log('the honeytoken to remove type: ', tokenToRemove.getType());
@@ -229,7 +229,7 @@ export function serveHoneytoken() {
         return;
       }
 
-      await token.stopMonitor();
+      token.stopMonitor();
       console.log('Monitoring stopped successfully');
       res.status(200).json({
         success: 'Monitoring stopped successfully',
