@@ -22,7 +22,7 @@ export function serveHoneytoken() {
       let received_token = null;
 
       if (type === 'text')
-        received_token = new Honeytoken_Text(
+        received_token = await Honeytoken_Text.create(
           token_id,
           group_id,
           type,

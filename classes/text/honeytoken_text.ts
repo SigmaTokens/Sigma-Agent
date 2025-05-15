@@ -7,10 +7,10 @@ import path from 'path';
 export class Honeytoken_Text extends Honeytoken {
   location: string;
   file_name: string;
-  agent: Monitor_Text;
+  agent!: Monitor_Text;
   is_monitoring: boolean = false;
 
-  constructor(
+  private constructor(
     token_id: string,
     group_id: string,
     type: HoneytokenType,
@@ -23,10 +23,22 @@ export class Honeytoken_Text extends Honeytoken {
     super(token_id, group_id, type, expirationDate, grade, notes);
     this.location = location;
     this.file_name = file_name;
-    this.notes = notes;
-    this.agent = Monitor_Text.getInstance(path.join(this.location, this.file_name), this);
-
     this.is_monitoring = false;
+  }
+
+  public static async create(
+    token_id: string,
+    group_id: string,
+    type: HoneytokenType,
+    expirationDate: Date,
+    grade: number,
+    notes: string,
+    location: string,
+    file_name: string,
+  ): Promise<Honeytoken_Text> {
+    const inst = new Honeytoken_Text(token_id, group_id, type, expirationDate, grade, notes, location, file_name);
+    inst.agent = await Monitor_Text.getInstance(path.join(location, file_name), inst);
+    return inst;
   }
 
   getFileName(): string {
