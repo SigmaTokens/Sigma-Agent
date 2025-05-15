@@ -50,7 +50,7 @@ export function serveMonitor() {
         Globals.tokens.map(async (token) => {
           try {
             if (token instanceof Honeytoken_Text && !token.isMonitoring()) {
-              await token.startMonitor();
+              token.startMonitor();
               return { success: true };
             }
             return { skipped: true };
@@ -117,7 +117,7 @@ export function serveMonitor() {
       for (const token of Globals.tokens) {
         if (token instanceof Honeytoken_Text) {
           if (token.isMonitoring()) {
-            await token.stopMonitor();
+            token.stopMonitor();
             anyStopped = true;
           }
         }

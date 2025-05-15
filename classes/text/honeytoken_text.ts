@@ -70,13 +70,13 @@ export class Honeytoken_Text extends Honeytoken {
     return this.is_monitoring;
   }
 
-  async startMonitor(): Promise<void> {
-    await this.agent.start_monitor();
+  startMonitor() {
+    this.agent.start_monitor();
     this.is_monitoring = true;
   }
 
-  async stopMonitor(): Promise<void> {
-    await this.agent.stop_monitor();
+  stopMonitor() {
+    this.agent.stop_monitor();
     this.is_monitoring = false;
   }
 }

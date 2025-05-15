@@ -44,7 +44,7 @@ export abstract class Monitor_Text extends Monitor {
     }
   }
 
-  async start_monitor() {
+  start_monitor() {
     if (!this.isMonitoring) {
       this.isMonitoring = true;
     }

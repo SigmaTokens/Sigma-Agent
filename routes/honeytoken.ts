@@ -42,7 +42,7 @@ export function serveHoneytoken() {
           received_token.createFile(data);
         }
 
-        await received_token.startMonitor();
+        received_token.startMonitor();
         console.log('cool');
         res.status(200).json({ success: 'honeytoken has been deployed and monitored!' });
         return;
@@ -177,7 +177,7 @@ export function serveHoneytoken() {
         return;
       }
 
-      await token.startMonitor();
+      token.startMonitor();
       res.status(200).json({
         success: 'Monitoring started successfully',
       });
