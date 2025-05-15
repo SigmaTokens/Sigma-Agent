@@ -2,9 +2,6 @@ import { Monitor } from '../abstract/Monitor.ts';
 import { Constants } from '../../constants.ts';
 import { isWindows, isMac, isLinux } from '../../utilities/host.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
-import { Monitor_Text_Windows } from './monitor_text_windows.ts';
-import { Monitor_Text_Linux } from './monitor_test_linux.ts';
-import { Monitor_Text_Mac } from './monitor_text_mac.ts';
 
 export abstract class Monitor_Text extends Monitor {
   file: string;
@@ -14,13 +11,16 @@ export abstract class Monitor_Text extends Monitor {
   shouldSendAlerts: boolean;
   isMonitoring: boolean;
 
-  public static getInstance(file: string, token: Honeytoken_Text): Monitor_Text {
+  public static async getInstance(file: string, token: Honeytoken_Text): Promise<Monitor_Text> {
     if (isWindows()) {
-      return new Monitor_Text_Windows(file, token);
+      const m = await import('./monitor_text_windows.ts');
+      return new m.Monitor_Text_Windows(file, token);
     } else if (isMac()) {
-      return new Monitor_Text_Mac(file, token);
+      const m = await import('./monitor_text_mac.ts');
+      return new m.Monitor_Text_Mac(file, token);
     } else {
-      return new Monitor_Text_Linux(file, token);
+      const m = await import('./monitor_test_linux.ts');
+      return new m.Monitor_Text_Linux(file, token);
     }
   }
 

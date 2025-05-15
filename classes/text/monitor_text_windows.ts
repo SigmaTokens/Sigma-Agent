@@ -1,8 +1,8 @@
 import { exec } from 'child_process';
 import { Constants } from '../../constants.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
-import { Monitor_Text } from './monitor_text.ts';
 import { sleep } from '../../utilities/utilities.ts';
+import { Monitor_Text } from './monitor_text.ts';
 
 export class Monitor_Text_Windows extends Monitor_Text {
   constructor(file: string, token: Honeytoken_Text) {
