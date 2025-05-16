@@ -1,6 +1,10 @@
 import { HoneytokenType } from '../../interfaces/type.ts';
 import { Honeytoken } from '../abstract/Honeytoken.ts';
 import { Monitor_Text } from './monitor_text.ts';
+import { Monitor_Text_Windows } from './monitor_text_windows.ts';
+import { Monitor_Text_Linux } from './monitor_test_linux.ts';
+import { Monitor_Text_Mac } from './monitor_text_mac.ts';
+import { isWindows, isMac, isLinux } from '../../utilities/host.ts';
 import fs from 'fs';
 import path from 'path';
 
@@ -56,9 +60,7 @@ export class Honeytoken_Text extends Honeytoken {
       }
 
       const fullPath = path.join(this.location, this.file_name);
-
       fs.writeFileSync(fullPath, data, { encoding: 'utf8' });
-
       console.log(`File created at: ${fullPath}`);
     } catch (error) {
       console.error(`Error creating file: ${error}`);

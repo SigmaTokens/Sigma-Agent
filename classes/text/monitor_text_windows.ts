@@ -17,9 +17,8 @@ export class Monitor_Text_Windows extends Monitor_Text {
 
   async start_monitor() {
     super.start_monitor();
-    await this.monitorWindows();
+    this.monitorWindows(); // ✅ don’t await the infinite loop
     console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file}`);
-
     this.shouldSendAlerts = true;
     console.log(Constants.TEXT_GREEN_COLOR, `Alerts enabled for ${this.file}`);
   }
@@ -42,12 +41,16 @@ export class Monitor_Text_Windows extends Monitor_Text {
     });
   }
 
-  async monitorWindows() {
+  private async monitorWindows() {
+    console.log(`Called startMonitor() on token ${this.token.token_id}`);
     await this.add_audit_rule_windows();
-    while (true) {
-      await this.get_latest_event_for_target_windows();
-      await sleep(500);
-    }
+    const monitorLoop = async () => {
+      while (true) {
+        await this.get_latest_event_for_target_windows();
+        await sleep(5000);
+      }
+    };
+    monitorLoop(); // spawn async background loop
   }
 
   async add_audit_rule_windows() {

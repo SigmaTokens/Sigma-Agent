@@ -142,11 +142,37 @@ export function serveHoneytoken() {
     }
   });
 
+  router.get('/honeytoken/statuses', (req, res) => {
+    try {
+      const origin = req.get('origin') || '';
+      if (!isFromManager(origin)) {
+        res.status(403).json({ failure: 'Access denied' });
+        return;
+      }
+
+      const statuses: Record<string, boolean> = {};
+
+      for (const token of Globals.tokens) {
+        if (token instanceof Honeytoken_Text) {
+          // Use token_id as the key and isMonitoring() result as value
+          statuses[token.token_id] = token.isMonitoring();
+        }
+      }
+
+      res.status(200).json(statuses);
+      return;
+    } catch (error: any) {
+      console.error('Status check error:', error);
+      res.status(500).json({ failure: 'Internal server error' });
+      return;
+    }
+  });
+
   router.post('/honeytoken/start', async (req, res) => {
     try {
       const origin = req.get('origin') || '';
-      const { token_id } = req.body;
 
+      const { token_id } = req.body;
       if (!isFromManager(origin)) {
         console.warn(`Unauthorized monitoring attempt from ${origin}`);
         res.status(403).json({ failure: 'Access denied' });
@@ -158,15 +184,10 @@ export function serveHoneytoken() {
         return;
       }
 
-      const token = Globals.tokens.find((t) => t.getTokenID() === token_id);
+      const token = Globals.tokens.find((t) => t.getTokenID() === token_id) as Honeytoken_Text;
 
       if (!token) {
         res.status(404).json({ failure: 'Honeytoken not found' });
-        return;
-      }
-
-      if (!(token instanceof Honeytoken_Text)) {
-        res.status(400).json({ failure: 'Invalid honeytoken type' });
         return;
       }
 
