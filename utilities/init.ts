@@ -6,7 +6,15 @@ export async function initHoneytokens(): Promise<void> {
   try {
     const serverUrl = `http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/honeytokens/agent`;
 
-    const requestBody = { agent_ip: getLocalIPv4s()[0], agent_port: Globals.port };
+    console.log("JOKER MANAGER_IP:", process.env.MANAGER_IP);
+    console.log("JOKER MANAGER_PORT:", process.env.MANAGER_PORT);
+
+    const agent_ip = getLocalIPv4s()[0];
+
+    const requestBody = { agent_ip: agent_ip, agent_port: Globals.port };
+
+    console.log("JOKER MANAGER_IP:", agent_ip);
+    console.log("JOKER MANAGER_PORT:", Globals.port);
 
     const response = await fetch(serverUrl, {
       method: 'POST',
