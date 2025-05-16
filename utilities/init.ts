@@ -33,8 +33,8 @@ export async function initHoneytokens(): Promise<void> {
         const token = new Honeytoken_Text(
           tokenData.token_id,
           tokenData.group_id,
-          tokenData.type,
-          new Date(tokenData.expirationDate),
+          tokenData.type_id,
+          new Date(tokenData.expire_date),
           tokenData.grade,
           tokenData.notes,
           tokenData.location,

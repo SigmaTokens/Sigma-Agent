@@ -38,10 +38,7 @@ function get_mode() {
     ? 'dev'
     : mode.includes('prod')
       ? 'prod'
-      : (console.error(
-          '[-] Please specify a mode to run the project: dev or prod',
-        ),
-        process.exit(-1));
+      : (console.error('[-] Please specify a mode to run the project: dev or prod'), process.exit(-1));
 }
 
 function get_root_dir() {
@@ -51,25 +48,22 @@ function get_root_dir() {
 }
 
 function is_extension_installed(extension) {
-  const listCommand = process.platform === 'linux' 
-    ? 'sudo -u $SUDO_USER code --list-extensions' 
-    : 'code --list-extensions';
+  const listCommand =
+    process.platform === 'linux' ? 'sudo -u $SUDO_USER code --list-extensions' : 'code --list-extensions';
   const installedExtensions = execSync(listCommand).toString().split('\n');
   return installedExtensions.includes(extension);
 }
 
 function is_extension_updated(extension) {
-  const command = process.platform === 'linux' 
-    ? 'sudo -u $SUDO_USER code --list-extensions --show-versions | grep ${extension}' 
-    : 'code --list-extensions --show-versions | grep ${extension}';
-  
+  const command =
+    process.platform === 'linux'
+      ? 'sudo -u $SUDO_USER code --list-extensions --show-versions | grep ${extension}'
+      : 'code --list-extensions --show-versions | grep ${extension}';
+
   return new Promise((resolve) => {
-    exec(
-      command,
-      (error, stdout) => {
-        resolve(stdout.includes('@') ? stdout.trim() : null);
-      },
-    );
+    exec(command, (error, stdout) => {
+      resolve(stdout.includes('@') ? stdout.trim() : null);
+    });
   });
 }
 
@@ -81,11 +75,11 @@ function install_extension(extension) {
       is_extension_updated(extension).then((updateCheck) => {
         if (updateCheck) {
           console.log(`[+] ${extension} update available, upgrading...`);
-          
-          if(process.platform === 'linux') {
+
+          if (process.platform === 'linux') {
             execSync(`sudo -u $SUDO_USER code --install-extension ${extension} --force`);
-          }
-          else { //(process.platform === 'win32') {
+          } else {
+            //(process.platform === 'win32') {
             execSync(`code --install-extension ${extension} --force`);
           }
         } else {
@@ -94,10 +88,10 @@ function install_extension(extension) {
       });
     } else {
       console.log(`[+] Installing ${extension}...`);
-      if(process.platform === 'linux') {
+      if (process.platform === 'linux') {
         execSync(`sudo -u $SUDO_USER code --install-extension ${extension} --force`);
-      }
-      else { //(process.platform === 'win32') {
+      } else {
+        //(process.platform === 'win32') {
         execSync(`code --install-extension ${extension} --force`);
       }
     }
@@ -159,15 +153,13 @@ function setup_vscode_settings(rootDir) {
 
 function install_deps() {
   try {
-    console.log('test3')
     console.log('[+] Updating deps for agent~~~');
-    if(process.platform !== 'linux') {
+    if (process.platform !== 'linux') {
       execSync('npm install', { stdio: 'inherit' });
-    }
-    else if (process.platform === 'linux') {
+    } else if (process.platform === 'linux') {
       execSync(`sudo apt install -y auditd`);
     }
-    
+
     console.log('[+] Deps update complete!');
   } catch (error) {
     console.error('[-] Failed to update deps:', error.message);

@@ -87,6 +87,7 @@ function validate_environment_file(): boolean {
 function send_initial_request_to_manager(): void {
   const ips = getLocalIPv4s();
   console.log(ips);
+  console.log(ips[0]);
   try {
     fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/agents/add`, {
       method: 'POST',
