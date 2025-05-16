@@ -30,7 +30,7 @@ export async function initHoneytokens(): Promise<void> {
 
     for (const tokenData of tokens) {
       try {
-        const token = new Honeytoken_Text(
+        const token = await Honeytoken_Text.create(
           tokenData.token_id,
           tokenData.group_id,
           tokenData.type_id,
@@ -40,6 +40,7 @@ export async function initHoneytokens(): Promise<void> {
           tokenData.location,
           tokenData.file_name,
         );
+
         Globals.tokens.push(token);
       } catch (tokenError) {
         console.error('Failed to initialize token:', tokenError);

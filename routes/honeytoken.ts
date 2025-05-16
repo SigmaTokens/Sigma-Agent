@@ -22,7 +22,7 @@ export function serveHoneytoken() {
       let received_token = null;
 
       if (type === 'text')
-        received_token = new Honeytoken_Text(
+        received_token = await Honeytoken_Text.create(
           token_id,
           group_id,
           type,
@@ -42,8 +42,8 @@ export function serveHoneytoken() {
           received_token.createFile(data);
         }
 
-        await received_token.startMonitor();
-
+        received_token.startMonitor();
+        console.log('cool');
         res.status(200).json({ success: 'honeytoken has been deployed and monitored!' });
         return;
       }
@@ -81,7 +81,7 @@ export function serveHoneytoken() {
 
       try {
         // Stop monitoring first
-        await tokenToRemove.stopMonitor();
+        tokenToRemove.stopMonitor();
 
         // Remove the physical file if it exists
         console.log('the honeytoken to remove type: ', tokenToRemove.getType());
@@ -198,8 +198,7 @@ export function serveHoneytoken() {
         return;
       }
 
-      await token.startMonitor();
-
+      token.startMonitor();
       res.status(200).json({
         success: 'Monitoring started successfully',
       });
@@ -251,7 +250,7 @@ export function serveHoneytoken() {
         return;
       }
 
-      await token.stopMonitor();
+      token.stopMonitor();
       console.log('Monitoring stopped successfully');
       res.status(200).json({
         success: 'Monitoring stopped successfully',

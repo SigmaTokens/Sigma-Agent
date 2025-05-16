@@ -11,6 +11,19 @@ export abstract class Monitor_Text extends Monitor {
   shouldSendAlerts: boolean;
   isMonitoring: boolean;
 
+  public static async getInstance(file: string, token: Honeytoken_Text): Promise<Monitor_Text> {
+    if (isWindows()) {
+      const m = await import('./monitor_text_windows.ts');
+      return new m.Monitor_Text_Windows(file, token);
+    } else if (isMac()) {
+      const m = await import('./monitor_text_mac.ts');
+      return new m.Monitor_Text_Mac(file, token);
+    } else {
+      const m = await import('./monitor_test_linux.ts');
+      return new m.Monitor_Text_Linux(file, token);
+    }
+  }
+
   constructor(file: string, token: Honeytoken_Text) {
     super();
     this.file = file;
@@ -21,7 +34,7 @@ export abstract class Monitor_Text extends Monitor {
     this.isMonitoring = false;
   }
 
-  async stop_monitor(lightStop: boolean = true) {
+  stop_monitor(lightStop: boolean = true) {
     if (lightStop) {
       this.shouldSendAlerts = false;
       console.log(Constants.TEXT_YELLOW_COLOR, `Alerts paused for ${this.file}`);
@@ -31,7 +44,7 @@ export abstract class Monitor_Text extends Monitor {
     }
   }
 
-  async start_monitor() {
+  start_monitor() {
     if (!this.isMonitoring) {
       this.isMonitoring = true;
     }

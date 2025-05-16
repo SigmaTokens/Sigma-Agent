@@ -14,7 +14,7 @@ export class Honeytoken_Text extends Honeytoken {
   agent!: Monitor_Text;
   is_monitoring: boolean = false;
 
-  constructor(
+  private constructor(
     token_id: string,
     group_id: string,
     type: HoneytokenType,
@@ -27,19 +27,22 @@ export class Honeytoken_Text extends Honeytoken {
     super(token_id, group_id, type, expirationDate, grade, notes);
     this.location = location;
     this.file_name = file_name;
-    this.notes = notes;
-
-    const fullPath = path.join(this.location, this.file_name);
-
-    if (isWindows()) {
-      this.agent = new Monitor_Text_Windows(fullPath, this);
-    } else if (isMac()) {
-      this.agent = new Monitor_Text_Mac(fullPath, this);
-    } else if (isLinux()) {
-      this.agent = new Monitor_Text_Linux(fullPath, this);
-    }
-
     this.is_monitoring = false;
+  }
+
+  public static async create(
+    token_id: string,
+    group_id: string,
+    type: HoneytokenType,
+    expirationDate: Date,
+    grade: number,
+    notes: string,
+    location: string,
+    file_name: string,
+  ): Promise<Honeytoken_Text> {
+    const inst = new Honeytoken_Text(token_id, group_id, type, expirationDate, grade, notes, location, file_name);
+    inst.agent = await Monitor_Text.getInstance(path.join(location, file_name), inst);
+    return inst;
   }
 
   getFileName(): string {
@@ -69,13 +72,13 @@ export class Honeytoken_Text extends Honeytoken {
     return this.is_monitoring;
   }
 
-  async startMonitor(): Promise<void> {
-    await this.agent.start_monitor();
+  startMonitor() {
+    this.agent.start_monitor();
     this.is_monitoring = true;
   }
 
-  async stopMonitor(): Promise<void> {
-    await this.agent.stop_monitor();
+  stopMonitor() {
+    this.agent.stop_monitor();
     this.is_monitoring = false;
   }
 }
