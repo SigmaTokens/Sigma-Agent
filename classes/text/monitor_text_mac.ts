@@ -27,6 +27,7 @@ export class Monitor_Text_Mac extends Monitor_Text {
   }
 
   private onAccess(stat: Stats) {
+    console.log('okeeeeeeeeeeeeeee');
     const accessDate = new Date(stat.atimeMs);
     if (accessDate > this.last_access_time) {
       this.last_access_time = accessDate;
