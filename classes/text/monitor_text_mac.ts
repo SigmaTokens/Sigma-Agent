@@ -2,11 +2,13 @@ import { watchFile, unwatchFile, Stats } from 'fs';
 import { Constants } from '../../constants.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
 import { Monitor_Text } from './monitor_text.ts';
-
+import { ReadWatcher } from './dummy.ts';
 export class Monitor_Text_Mac extends Monitor_Text {
   private fileListener?: (curr: Stats, prev: Stats) => void;
+  private readListener: ReadWatcher;
   constructor(file: string, token: Honeytoken_Text) {
     super(file, token);
+    this.readListener = new ReadWatcher(this.file);
   }
 
   async start_monitor() {
@@ -17,11 +19,10 @@ export class Monitor_Text_Mac extends Monitor_Text {
     this.fileListener = (curr, prev) => {
       if (curr.atimeMs > prev.atimeMs && this.shouldSendAlerts) {
         this.onAccess(curr);
-      } else {
-        this.not_first_log = true;
       }
     };
 
+    this.readListener.start();
     watchFile(this.file, { interval: 5000 }, this.fileListener);
     console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file}`);
   }
@@ -30,22 +31,18 @@ export class Monitor_Text_Mac extends Monitor_Text {
     const accessDate = new Date(stat.atimeMs);
     if (accessDate > this.last_access_time) {
       this.last_access_time = accessDate;
-      if (this.not_first_log) {
-        // Build your alert payload however you like; you won’t get the rich eventData
-        const postData = {
-          token_id: this.token.token_id,
-          alert_epoch: accessDate.getTime(),
-          accessed_by: 'macOS fs.watchFile',
-        };
-        console.log('sigma:', postData);
-        fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(postData),
-        }).catch((err) => console.error('Error posting alert:', err));
-      } else {
-        this.not_first_log = true;
-      }
+      // Build your alert payload however you like; you won’t get the rich eventData
+      const postData = {
+        token_id: this.token.token_id,
+        alert_epoch: accessDate.getTime(),
+        accessed_by: 'macOS fs.watchFile',
+      };
+      console.log('sigma:', postData);
+      fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postData),
+      }).catch((err) => console.error('Error posting alert:', err));
     }
   }
 
