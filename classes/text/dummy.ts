@@ -19,12 +19,14 @@ export class ReadWatcher {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
+    console.log(script);
+
     this.dtraceProc.stdin.write(script);
     this.dtraceProc.stdin.end();
 
     // no more TS errors — all streams are guaranteed
     this.dtraceProc.stdout.on('data', (buf) => this.onRead(buf.toString()));
-    this.dtraceProc.stderr.on('data', (buf) => console.error('DTrace stderr:', buf.toString()));
+    this.dtraceProc.stderr.on('data', (buf) => console.error('DTrace stderr:', buf.toString())); //error
   }
 
   public stop() {
