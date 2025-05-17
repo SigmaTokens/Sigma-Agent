@@ -15,7 +15,7 @@ export class ReadWatcher {
     `;
 
     // now stderr is a pipe rather than `null`
-    this.dtraceProc = spawn('sudo', ['dtrace', '-s', '-'], {
+    this.dtraceProc = spawn('sudo', ['dtrace', '-s', '/dev/stdin'], {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
