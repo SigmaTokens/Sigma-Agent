@@ -27,7 +27,6 @@ export class Monitor_Text_Mac extends Monitor_Text {
   }
 
   private onAccess(stat: Stats) {
-    console.log('okeeeeeeeeeeeeeee');
     const accessDate = new Date(stat.atimeMs);
     if (accessDate > this.last_access_time) {
       this.last_access_time = accessDate;
@@ -38,7 +37,8 @@ export class Monitor_Text_Mac extends Monitor_Text {
           alert_epoch: accessDate.getTime(),
           accessed_by: 'macOS fs.watchFile',
         };
-        fetch(`http://${process.env.MANAGER_IP}:3000/api/alerts`, {
+        console.log('sigma:', postData);
+        fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(postData),
