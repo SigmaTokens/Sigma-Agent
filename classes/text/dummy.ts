@@ -16,12 +16,21 @@ export class ReadWatcher {
     }
 
     const script = `
-      syscall::open*:entry
-      /copyinstr(arg0) == "${this.filePath}"/
-      {
-        printf("%Y %s opened by pid %d\\n", walltimestamp, copyinstr(arg0), pid);
-      }
-    `;
+#pragma D option quiet
+
+syscall::open*:entry
+{
+    self->path = copyinstr(arg0);
+    if (self->path == "${this.filePath}")
+    {
+        printf("%Y %s opened by pid %d\\n",
+               walltimestamp, self->path, pid);
+    }
+    self->path = 0;
+}
+`;
+
+    // …write to temp file & spawn dtrace exactly as before…
 
     // Write the DTrace script to a temp file
     const scriptPath = this.writeScriptToTemp(script);
