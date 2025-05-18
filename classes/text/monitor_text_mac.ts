@@ -1,42 +1,58 @@
-import { watchFile, unwatchFile, Stats } from 'fs';
+import { spawn, ChildProcess } from 'child_process';
+import { stat, Stats } from 'fs';
 import { Constants } from '../../constants.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
 import { Monitor_Text } from './monitor_text.ts';
-import { ReadWatcher } from './dummy.ts';
+
 export class Monitor_Text_Mac extends Monitor_Text {
-  private fileListener?: (curr: Stats, prev: Stats) => void;
-  private readListener: ReadWatcher;
+  private fsUsageProcess?: ChildProcess;
+
   constructor(file: string, token: Honeytoken_Text) {
     super(file, token);
-    this.readListener = new ReadWatcher(this.file);
   }
 
   async start_monitor() {
     super.start_monitor();
     this.shouldSendAlerts = true;
 
-    // store the listener so we can remove it later
-    this.fileListener = (curr, prev) => {
-      if (curr.atimeMs > prev.atimeMs && this.shouldSendAlerts) {
-        this.onAccess(curr);
-      }
-    };
+    // Spawn fs_usage (requires root)
+    this.fsUsageProcess = spawn('fs_usage', ['-w', '-f', 'filesys']);
+    if (this.fsUsageProcess.stdout) {
+      this.fsUsageProcess.stdout.setEncoding('utf8');
 
-    this.readListener.start();
-    watchFile(this.file, { interval: 5000 }, this.fileListener);
-    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file}`);
+      this.fsUsageProcess.stdout.on('data', (chunk: string) => {
+        for (const line of chunk.split('\n')) {
+          if (line.includes(this.file)) {
+            stat(this.file, (err, stats: Stats) => {
+              if (err) return console.error('stat error:', err);
+              // Compare against last_access_time (a Date on the base class)
+              if (stats.atimeMs > this.last_access_time.getTime()) {
+                this.onAccess(stats);
+              }
+            });
+          }
+        }
+      });
+    }
+
+    if (this.fsUsageProcess.stderr) {
+      this.fsUsageProcess.stderr.on('data', (data) => console.error('fs_usage error:', data.toString()));
+    }
+
+    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via fs_usage`);
   }
 
   private onAccess(stat: Stats) {
     const accessDate = new Date(stat.atimeMs);
     if (accessDate > this.last_access_time) {
       this.last_access_time = accessDate;
-      // Build your alert payload however you like; you won’t get the rich eventData
+
       const postData = {
         token_id: this.token.token_id,
         alert_epoch: accessDate.getTime(),
-        accessed_by: 'macOS fs.watchFile',
+        accessed_by: 'macOS fs_usage',
       };
+
       console.log('sigma:', postData);
       fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
         method: 'POST',
@@ -48,12 +64,9 @@ export class Monitor_Text_Mac extends Monitor_Text {
 
   async stop_monitor() {
     super.stop_monitor();
-    if (this.fileListener) {
-      // remove only this listener
-      unwatchFile(this.file, this.fileListener);
-    } else {
-      // or remove all watchers on this.file
-      unwatchFile(this.file);
+    if (this.fsUsageProcess) {
+      this.fsUsageProcess.kill();
+      this.fsUsageProcess = undefined;
     }
     console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`);
   }
