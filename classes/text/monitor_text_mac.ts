@@ -1,4 +1,4 @@
-import { spawn, ChildProcess } from 'child_process';
+import { spawn, ChildProcess, exec } from 'child_process';
 import { stat, Stats } from 'fs';
 import { Constants } from '../../constants.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
@@ -21,7 +21,6 @@ export class Monitor_Text_Mac extends Monitor_Text {
     const stdout = this.fsUsageProcess.stdout!;
     stdout.setEncoding('utf8');
     stdout.on('data', (chunk: string) => {
-      console.log('yummy data:', chunk);
       for (const line of chunk.split('\n')) {
         if (!line.includes(this.file)) continue;
 
@@ -29,13 +28,13 @@ export class Monitor_Text_Mac extends Monitor_Text {
         const regex = /^\s*\d{2}:\d{2}:\d{2}\.\d+\s+(\S+)\[(\d+)\]/;
         const match = line.match(regex);
         const procName = match ? match[1] : 'unknown';
-        const pid = match ? match[2] : 'unknown';
+        const pid = match ? match[2] : '';
 
-        // Get fresh stats and invoke access handler
+        // Get fresh stats and handle access
         stat(this.file, (err, stats: Stats) => {
           if (err) return console.error('stat error:', err);
           if (stats.atimeMs > this.last_access_time.getTime()) {
-            this.onAccess(stats, procName, pid);
+            this.handleAccess(stats, procName, pid);
           }
         });
       }
@@ -47,23 +46,26 @@ export class Monitor_Text_Mac extends Monitor_Text {
     console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via fs_usage`);
   }
 
-  private onAccess(stat: Stats, procName: string, pid: string) {
+  private handleAccess(stat: Stats, procName: string, pid: string) {
     const accessDate = new Date(stat.atimeMs);
     if (accessDate > this.last_access_time) {
       this.last_access_time = accessDate;
+      // Lookup the user that performed the access
+      exec(`ps -p ${pid} -o user=`, (err, stdout) => {
+        const user = err ? 'unknown' : stdout.trim() || 'unknown';
+        const postData = {
+          token_id: this.token.token_id,
+          alert_epoch: accessDate.getTime(),
+          accessed_by: user,
+        };
 
-      const postData = {
-        token_id: this.token.token_id,
-        alert_epoch: accessDate.getTime(),
-        accessed_by: `${procName}[${pid}]`,
-      };
-
-      console.log('sigma:', postData);
-      fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(postData),
-      }).catch((err) => console.error('Error posting alert:', err));
+        console.log('sigma:', postData);
+        fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(postData),
+        }).catch((err) => console.error('Error posting alert:', err));
+      });
     }
   }
 
