@@ -17,12 +17,11 @@ export class Monitor_Text_Mac extends Monitor_Text {
 
     // Spawn fs_usage with upstream filtering: include target file, exclude stat64
     const escapedPath = this.file.replace(/\//g, '\\/');
-    const excludePattern = Constants.MAC_EXCLUDE_PROGRAMS_REGEX.source;
+    //const excludePattern = Constants.MAC_EXCLUDE_PROGRAMS_REGEX.source;
     // const includeOps = '(open|read|write)';
     const cmd = `fs_usage -w -f filesys \
       | grep "${escapedPath}" \
-      | grep -vE "stat64|statfs64" \
-      | grep -vE "${excludePattern}"`;
+      | grep -vE "stat64|statfs64"`;
 
     this.fsUsageProcess = spawn('bash', ['-lc', cmd], { stdio: ['ignore', 'pipe', 'pipe'] });
 
