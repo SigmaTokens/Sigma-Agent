@@ -21,6 +21,7 @@ export class Monitor_Text_Mac extends Monitor_Text {
     const stdout = this.fsUsageProcess.stdout!;
     stdout.setEncoding('utf8');
     stdout.on('data', (chunk: string) => {
+      console.log('yummy data:', chunk);
       for (const line of chunk.split('\n')) {
         if (!line.includes(this.file)) continue;
 
