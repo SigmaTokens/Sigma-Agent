@@ -19,7 +19,7 @@ export abstract class Monitor_Text extends Monitor {
       const m = await import('./monitor_text_mac.ts');
       return new m.Monitor_Text_Mac(file, token);
     } else {
-      const m = await import('./monitor_test_linux.ts');
+      const m = await import('./monitor_text_linux.ts');
       return new m.Monitor_Text_Linux(file, token);
     }
   }

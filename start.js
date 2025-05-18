@@ -157,7 +157,7 @@ function install_deps() {
     if (process.platform !== 'linux') {
       execSync('npm install', { stdio: 'inherit' });
     } else if (process.platform === 'linux') {
-      execSync(`sudo apt install -y auditd`);
+      execSync('sudo apt install -y auditd inotify-tools'); //currently using inotify-tools for monitoring files
     }
 
     console.log('[+] Deps update complete!');
