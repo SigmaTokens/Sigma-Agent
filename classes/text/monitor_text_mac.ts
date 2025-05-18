@@ -18,10 +18,13 @@ export class Monitor_Text_Mac extends Monitor_Text {
     // Spawn fs_usage with upstream filtering: include target file, exclude stat64
     const escapedPath = this.file.replace(/\//g, '\\/');
     const excludePattern = Constants.MAC_EXCLUDE_PROGRAMS_REGEX.source;
+    const includeOps = '(open|read|write)';
     const cmd = `fs_usage -w -f filesys \
       | grep "${escapedPath}" \
-      | grep -v stat64 \
-      | grep -v -E "${excludePattern}"`;
+      | grep -E "${includeOps}" \
+      | grep -vE "stat64|statfs64" \
+      | grep -vE "${excludePattern}"`;
+
     this.fsUsageProcess = spawn('bash', ['-lc', cmd], { stdio: ['ignore', 'pipe', 'pipe'] });
 
     const stdout = this.fsUsageProcess.stdout!;
@@ -82,6 +85,7 @@ export class Monitor_Text_Mac extends Monitor_Text {
       accessed_by: user,
       process: procName,
       pid: pid,
+      log: 'test',
     };
 
     console.log('sigma:', postData);
