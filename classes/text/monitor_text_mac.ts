@@ -15,30 +15,30 @@ export class Monitor_Text_Mac extends Monitor_Text {
     super.start_monitor();
     this.shouldSendAlerts = true;
 
-    // Spawn fs_usage with upstream filtering via a shell pipeline
+    // Spawn fs_usage with upstream filtering: include target file, exclude stat64
     const escapedPath = this.file.replace(/\//g, '\\/');
-    const cmd = `fs_usage -w -f filesys | grep "${escapedPath}"`;
+    const cmd = `fs_usage -w -f filesys \
+      | grep "${escapedPath}" \
+      | grep -v stat64`;
     this.fsUsageProcess = spawn('bash', ['-lc', cmd], { stdio: ['ignore', 'pipe', 'pipe'] });
 
     const stdout = this.fsUsageProcess.stdout!;
     stdout.setEncoding('utf8');
     stdout.on('data', (chunk: string) => {
-      // 1) Print the raw chunk you’re getting from the pipeline:
-      console.log('[DEBUG fs_usage chunk]\n', chunk);
       for (const line of chunk.split('\n')) {
-        // 2) Print each individual line
-        console.log('[DEBUG fs_usage line] "', line, '"');
         const trimmed = line.trim();
         if (!trimmed) continue;
 
-        const parts = trimmed.split(/\s+/);
-        if (parts.length < 4) continue;
-        const pid = parts[2];
+        // Extract process name and PID: ends with "processName.pid"
+        const procPidMatch = trimmed.match(/(\S+)\.(\d+)$/);
+        const procName = procPidMatch ? procPidMatch[1] : 'unknown';
+        const pid = procPidMatch ? procPidMatch[2] : '';
 
+        // Fresh stat to check atime
         stat(this.file, (err, stats: Stats) => {
           if (err) return console.error('stat error:', err);
           if (stats.atimeMs > this.last_access_time.getTime()) {
-            this.handleAccess(stats, pid);
+            this.handleAccess(stats, pid, procName);
           }
         });
       }
@@ -47,7 +47,6 @@ export class Monitor_Text_Mac extends Monitor_Text {
     const stderr = this.fsUsageProcess.stderr!;
     stderr.on('data', (data) => {
       const msg = data.toString();
-      // Ignore harmless ktrace resource-busy errors on restart
       if (msg.includes('ktrace_start: Resource busy')) return;
       console.error('fs_usage error:', msg);
     });
@@ -55,26 +54,29 @@ export class Monitor_Text_Mac extends Monitor_Text {
     console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via filtered fs_usage`);
   }
 
-  private async handleAccess(stat: Stats, pid: string) {
+  private handleAccess(stat: Stats, pid: string, procName: string) {
     const accessDate = new Date(stat.atimeMs);
     if (accessDate > this.last_access_time) {
       this.last_access_time = accessDate;
+      // Lookup user via lsof and send alert
       if (pid) {
         exec(`lsof -p ${pid} | awk 'NR==2 {print $3}'`, (err, stdout) => {
           const user = err ? 'unknown' : stdout.trim() || 'unknown';
-          this.sendAlert(accessDate, user);
+          this.sendAlert(accessDate, user, pid, procName);
         });
       } else {
-        this.sendAlert(accessDate, 'unknown');
+        this.sendAlert(accessDate, 'unknown', pid, procName);
       }
     }
   }
 
-  private sendAlert(accessDate: Date, user: string) {
+  private sendAlert(accessDate: Date, user: string, pid: string, procName: string) {
     const postData = {
       token_id: this.token.token_id,
       alert_epoch: accessDate.getTime(),
       accessed_by: user,
+      process: procName,
+      pid: pid,
     };
 
     console.log('sigma:', postData);
@@ -88,12 +90,8 @@ export class Monitor_Text_Mac extends Monitor_Text {
   async stop_monitor() {
     super.stop_monitor();
     if (this.fsUsageProcess) {
-      // Send SIGINT to allow fs_usage to clean up ktrace
       this.fsUsageProcess.kill('SIGINT');
-      // Wait for it to exit before clearing
-      await new Promise<void>((resolve) => {
-        this.fsUsageProcess!.once('exit', () => resolve());
-      });
+      await new Promise<void>((resolve) => this.fsUsageProcess!.once('exit', () => resolve()));
       this.fsUsageProcess = undefined;
     }
     console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`);
