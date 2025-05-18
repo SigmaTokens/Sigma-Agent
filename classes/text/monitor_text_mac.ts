@@ -36,7 +36,7 @@ export class Monitor_Text_Mac extends Monitor_Text {
 
         // Extract process name and PID: ends with "processName.pid"
         const procPidMatch = trimmed.match(/(\S+)\.(\d+)$/);
-        const procName = procPidMatch ? procPidMatch[1] : 'unknown';
+        const procName = procPidMatch ? procPidMatch[1] : '';
         const pid = procPidMatch ? procPidMatch[2] : '';
 
         // Fresh stat to check atime
@@ -66,11 +66,11 @@ export class Monitor_Text_Mac extends Monitor_Text {
       // Lookup user via lsof and send alert
       if (pid) {
         exec(`lsof -p ${pid} | awk 'NR==2 {print $3}'`, (err, stdout) => {
-          const user = err ? 'unknown' : stdout.trim() || 'unknown';
+          const user = err ? '' : stdout.trim() || '';
           this.sendAlert(accessDate, user, pid, procName);
         });
       } else {
-        this.sendAlert(accessDate, 'unknown', pid, procName);
+        this.sendAlert(accessDate, '', pid, procName);
       }
     }
   }
