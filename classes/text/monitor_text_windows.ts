@@ -118,7 +118,7 @@ export class Monitor_Text_Windows extends Monitor_Text {
                   log: jsonData,
                 };
 
-                fetch('http://' + process.env.MANAGER_IP + ':' + process.env.MANAGER_IP + '3000/api/alerts', {
+                fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
