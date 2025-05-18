@@ -46,7 +46,14 @@ export class Monitor_Text_Linux extends Monitor_Text {
     });
 
     const stderr = this.watcherProcess.stderr!;
-    stderr.on('data', (data) => console.error('inotifywait error:', data.toString()));
+    stderr.on('data', (data) => {
+      const msg = data.toString().trim();
+      //ignore warnings errors
+      if (msg === 'Setting up watches.' || msg === 'Watches established.') {
+        return;
+      }
+      console.error('inotifywait error:', msg);
+    });
 
     console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via inotifywait`);
   }
