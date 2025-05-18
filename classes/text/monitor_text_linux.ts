@@ -47,9 +47,8 @@ export class Monitor_Text_Linux extends Monitor_Text {
 
     const stderr = this.watcherProcess.stderr!;
     stderr.on('data', (data) => {
-      const msg = data.toString().trim();
-      //ignore warnings errors
-      if (msg === 'Setting up watches.' || msg === 'Watches established.') {
+      const msg = data.toString();
+      if (msg.includes('Setting up watches') || msg.includes('Watches established')) {
         return;
       }
       console.error('inotifywait error:', msg);
