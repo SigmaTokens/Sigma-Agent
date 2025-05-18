@@ -24,17 +24,17 @@ export class Monitor_Text_Mac extends Monitor_Text {
       for (const line of chunk.split('\n')) {
         if (!line.includes(this.file)) continue;
 
-        // Extract process name and PID from fs_usage output
-        const regex = /^\s*\d{2}:\d{2}:\d{2}\.\d+\s+(\S+)\[(\d+)\]/;
+        // Extract PID from fs_usage output
+        // Sample line: "12:23:45 Finder[123] open(..."
+        const regex = /^\s*\d{2}:\d{2}:\d{2}\s+.+?\[(\d+)\]/;
         const match = line.match(regex);
-        const procName = match ? match[1] : 'unknown';
-        const pid = match ? match[2] : '';
+        const pid = match ? match[1] : '';
 
         // Get fresh stats and handle access
         stat(this.file, (err, stats: Stats) => {
           if (err) return console.error('stat error:', err);
           if (stats.atimeMs > this.last_access_time.getTime()) {
-            this.handleAccess(stats, procName, pid);
+            this.handleAccess(stats, pid);
           }
         });
       }
@@ -46,27 +46,35 @@ export class Monitor_Text_Mac extends Monitor_Text {
     console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via fs_usage`);
   }
 
-  private handleAccess(stat: Stats, procName: string, pid: string) {
+  private handleAccess(stat: Stats, pid: string) {
     const accessDate = new Date(stat.atimeMs);
     if (accessDate > this.last_access_time) {
       this.last_access_time = accessDate;
-      // Lookup the user that performed the access
-      exec(`ps -p ${pid} -o user=`, (err, stdout) => {
-        const user = err ? 'unknown' : stdout.trim() || 'unknown';
-        const postData = {
-          token_id: this.token.token_id,
-          alert_epoch: accessDate.getTime(),
-          accessed_by: user,
-        };
-
-        console.log('sigma:', postData);
-        fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(postData),
-        }).catch((err) => console.error('Error posting alert:', err));
-      });
+      // Lookup the user that performed the access via lsof
+      if (pid) {
+        exec(`lsof -p ${pid} | awk 'NR==2 {print $3}'`, (err, stdout) => {
+          const user = err ? 'unknown' : stdout.trim() || 'unknown';
+          this.sendAlert(accessDate, user);
+        });
+      } else {
+        this.sendAlert(accessDate, 'unknown');
+      }
     }
+  }
+
+  private sendAlert(accessDate: Date, user: string) {
+    const postData = {
+      token_id: this.token.token_id,
+      alert_epoch: accessDate.getTime(),
+      accessed_by: user,
+    };
+
+    console.log('sigma:', postData);
+    fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(postData),
+    }).catch((err) => console.error('Error posting alert:', err));
   }
 
   async stop_monitor() {
