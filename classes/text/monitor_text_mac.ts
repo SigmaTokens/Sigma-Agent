@@ -17,15 +17,20 @@ export class Monitor_Text_Mac extends Monitor_Text {
 
     // Spawn fs_usage with upstream filtering: include target file, exclude stat64
     const escapedPath = this.file.replace(/\//g, '\\/');
+    const excludePattern = Constants.MAC_EXCLUDE_PROGRAMS_REGEX.source;
     const cmd = `fs_usage -w -f filesys \
       | grep "${escapedPath}" \
-      | grep -v stat64`;
+      | grep -v stat64 \
+      | grep -v -E "${excludePattern}"`;
     this.fsUsageProcess = spawn('bash', ['-lc', cmd], { stdio: ['ignore', 'pipe', 'pipe'] });
 
     const stdout = this.fsUsageProcess.stdout!;
     stdout.setEncoding('utf8');
     stdout.on('data', (chunk: string) => {
       for (const line of chunk.split('\n')) {
+        // 2) Print each individual line
+        console.log('[DEBUG fs_usage line] "', line, '"');
+
         const trimmed = line.trim();
         if (!trimmed) continue;
 
