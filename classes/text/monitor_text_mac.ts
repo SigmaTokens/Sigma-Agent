@@ -17,7 +17,7 @@ export class Monitor_Text_Mac extends Monitor_Text {
 
     // Spawn fs_usage with upstream filtering via a shell pipeline
     const escapedPath = this.file.replace(/\//g, '\\/');
-    const cmd = `fs_usage -w -f filesys | grep "${escapedPath}" | grep -E \"(open|read|write)\"`;
+    const cmd = `fs_usage -w -f filesys | grep "${escapedPath}"`;
     this.fsUsageProcess = spawn('bash', ['-lc', cmd], { stdio: ['ignore', 'pipe', 'pipe'] });
 
     const stdout = this.fsUsageProcess.stdout!;
@@ -27,13 +27,10 @@ export class Monitor_Text_Mac extends Monitor_Text {
         const trimmed = line.trim();
         if (!trimmed) continue;
 
-        // Parse "TIME syscall PID path"
-        // e.g. "12:34:56.789 open 12345 /path/to/file"
         const parts = trimmed.split(/\s+/);
         if (parts.length < 4) continue;
         const pid = parts[2];
 
-        // Stat and handle access
         stat(this.file, (err, stats: Stats) => {
           if (err) return console.error('stat error:', err);
           if (stats.atimeMs > this.last_access_time.getTime()) {
@@ -44,12 +41,17 @@ export class Monitor_Text_Mac extends Monitor_Text {
     });
 
     const stderr = this.fsUsageProcess.stderr!;
-    stderr.on('data', (data) => console.error('fs_usage error:', data.toString()));
+    stderr.on('data', (data) => {
+      const msg = data.toString();
+      // Ignore harmless ktrace resource-busy errors on restart
+      if (msg.includes('ktrace_start: Resource busy')) return;
+      console.error('fs_usage error:', msg);
+    });
 
     console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via filtered fs_usage`);
   }
 
-  private handleAccess(stat: Stats, pid: string) {
+  private async handleAccess(stat: Stats, pid: string) {
     const accessDate = new Date(stat.atimeMs);
     if (accessDate > this.last_access_time) {
       this.last_access_time = accessDate;
@@ -82,7 +84,12 @@ export class Monitor_Text_Mac extends Monitor_Text {
   async stop_monitor() {
     super.stop_monitor();
     if (this.fsUsageProcess) {
-      this.fsUsageProcess.kill();
+      // Send SIGINT to allow fs_usage to clean up ktrace
+      this.fsUsageProcess.kill('SIGINT');
+      // Wait for it to exit before clearing
+      await new Promise<void>((resolve) => {
+        this.fsUsageProcess!.once('exit', () => resolve());
+      });
       this.fsUsageProcess = undefined;
     }
     console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`);
