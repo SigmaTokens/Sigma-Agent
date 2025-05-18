@@ -23,7 +23,11 @@ export class Monitor_Text_Mac extends Monitor_Text {
     const stdout = this.fsUsageProcess.stdout!;
     stdout.setEncoding('utf8');
     stdout.on('data', (chunk: string) => {
+      // 1) Print the raw chunk you’re getting from the pipeline:
+      console.log('[DEBUG fs_usage chunk]\n', chunk);
       for (const line of chunk.split('\n')) {
+        // 2) Print each individual line
+        console.log('[DEBUG fs_usage line] "', line, '"');
         const trimmed = line.trim();
         if (!trimmed) continue;
 
