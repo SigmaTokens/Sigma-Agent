@@ -157,7 +157,7 @@ function install_deps() {
     if (process.platform !== 'linux') {
       execSync('npm install', { stdio: 'inherit' });
     } else if (process.platform === 'linux') {
-      execSync('sudo apt install -y auditd inotify-tools'); //currently using inotify-tools for monitoring files
+      install_deps_linux();
     }
 
     console.log('[+] Deps update complete!');
@@ -165,6 +165,36 @@ function install_deps() {
     console.error('[-] Failed to update deps:', error.message);
     process.exit(-1);
   }
+}
+
+function install_deps_linux() {
+  const deps = ['inotify-tools'];
+  deps.forEach((dep) => install_dep_linux(dep));
+}
+
+function install_dep_linux(dep_name) {
+  const pkg = [
+    { cmd: 'apt', install: `apt install -y ${dep_name}` },
+    { cmd: 'dnf', install: `dnf install -y ${dep_name}` },
+    { cmd: 'yum', install: `yum install -y ${dep_name}` },
+    { cmd: 'pacman', install: `pacman -S --noconfirm ${dep_name}` },
+    { cmd: 'zypper', install: `zypper install -y ${dep_name}` },
+  ].find((p) => {
+    try {
+      execSync(`command -v ${p.cmd}`, { stdio: 'ignore' });
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
+  if (!pkg) {
+    console.error('[-] No supported package manager found. Install auditd and inotify-tools manually.');
+    process.exit(1);
+  }
+
+  console.log(`[+] Installing deps via ${pkg.cmd}…`);
+  execSync(`sudo ${pkg.install}`, { stdio: 'inherit' });
 }
 
 function run_sigmatokens(mode) {
