@@ -15,50 +15,44 @@ export class Monitor_Text_Mac extends Monitor_Text {
     super.start_monitor();
     this.shouldSendAlerts = true;
 
-    // Spawn fs_usage in pipe mode to capture stdout/stderr
-    this.fsUsageProcess = spawn('fs_usage', ['-w', '-f', 'filesys'], { stdio: ['ignore', 'pipe', 'pipe'] });
+    // Spawn fs_usage with upstream filtering via a shell pipeline
+    const escapedPath = this.file.replace(/\//g, '\\/');
+    const cmd = `fs_usage -w -f filesys | grep "${escapedPath}" | grep -E \"(open|read|write)\"`;
+    this.fsUsageProcess = spawn('bash', ['-lc', cmd], { stdio: ['ignore', 'pipe', 'pipe'] });
 
     const stdout = this.fsUsageProcess.stdout!;
     stdout.setEncoding('utf8');
     stdout.on('data', (chunk: string) => {
-      // Log the raw chunk so you can see timestamp, spaces, etc.
-      console.log('[DEBUG fs_usage raw chunk]\n', chunk);
-
       for (const line of chunk.split('\n')) {
-        if (!line.trim()) continue;
+        const trimmed = line.trim();
+        if (!trimmed) continue;
 
-        // Log each individual line
-        console.log('[DEBUG fs_usage line] "', line, '"');
+        // Parse "TIME syscall PID path"
+        // e.g. "12:34:56.789 open 12345 /path/to/file"
+        const parts = trimmed.split(/\s+/);
+        if (parts.length < 4) continue;
+        const pid = parts[2];
 
-        if (!line.includes(this.file)) {
-          console.log('[DEBUG] ➔ does not include target file, skipping');
-          continue;
-        }
-
-        // Try matching PID and process name — log the match array
-        const regex = /^\s*\d{2}:\d{2}:\d{2}(?:\.\d+)?\s+(\S+)\[(\d+)\]/;
-        const match = line.match(regex);
-        console.log('[DEBUG regex match] ', match);
-
-        const procName = match ? match[1] : 'NO-PROC';
-        const pid = match ? match[2] : 'NO-PID';
-        console.log(`[DEBUG] extracted procName="${procName}", pid="${pid}"`);
-
-        // … then your stat() + handleAccess(pid) as before …
+        // Stat and handle access
+        stat(this.file, (err, stats: Stats) => {
+          if (err) return console.error('stat error:', err);
+          if (stats.atimeMs > this.last_access_time.getTime()) {
+            this.handleAccess(stats, pid);
+          }
+        });
       }
     });
 
     const stderr = this.fsUsageProcess.stderr!;
     stderr.on('data', (data) => console.error('fs_usage error:', data.toString()));
 
-    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via fs_usage`);
+    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via filtered fs_usage`);
   }
 
   private handleAccess(stat: Stats, pid: string) {
     const accessDate = new Date(stat.atimeMs);
     if (accessDate > this.last_access_time) {
       this.last_access_time = accessDate;
-      // Lookup the user that performed the access via lsof
       if (pid) {
         exec(`lsof -p ${pid} | awk 'NR==2 {print $3}'`, (err, stdout) => {
           const user = err ? 'unknown' : stdout.trim() || 'unknown';
