@@ -21,22 +21,30 @@ export class Monitor_Text_Mac extends Monitor_Text {
     const stdout = this.fsUsageProcess.stdout!;
     stdout.setEncoding('utf8');
     stdout.on('data', (chunk: string) => {
+      // Log the raw chunk so you can see timestamp, spaces, etc.
+      console.log('[DEBUG fs_usage raw chunk]\n', chunk);
+
       for (const line of chunk.split('\n')) {
-        if (!line.includes(this.file)) continue;
+        if (!line.trim()) continue;
 
-        // Extract PID from fs_usage output
-        // Sample line: "12:23:45 Finder[123] open(..."
-        const regex = /^\s*\d{2}:\d{2}:\d{2}\s+.+?\[(\d+)\]/;
+        // Log each individual line
+        console.log('[DEBUG fs_usage line] "', line, '"');
+
+        if (!line.includes(this.file)) {
+          console.log('[DEBUG] ➔ does not include target file, skipping');
+          continue;
+        }
+
+        // Try matching PID and process name — log the match array
+        const regex = /^\s*\d{2}:\d{2}:\d{2}(?:\.\d+)?\s+(\S+)\[(\d+)\]/;
         const match = line.match(regex);
-        const pid = match ? match[1] : '';
+        console.log('[DEBUG regex match] ', match);
 
-        // Get fresh stats and handle access
-        stat(this.file, (err, stats: Stats) => {
-          if (err) return console.error('stat error:', err);
-          if (stats.atimeMs > this.last_access_time.getTime()) {
-            this.handleAccess(stats, pid);
-          }
-        });
+        const procName = match ? match[1] : 'NO-PROC';
+        const pid = match ? match[2] : 'NO-PID';
+        console.log(`[DEBUG] extracted procName="${procName}", pid="${pid}"`);
+
+        // … then your stat() + handleAccess(pid) as before …
       }
     });
 
