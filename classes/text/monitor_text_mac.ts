@@ -1,8 +1,9 @@
-import { spawn, ChildProcess, exec } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import { stat, Stats } from 'fs';
 import { Constants } from '../../constants.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
 import { Monitor_Text } from './monitor_text.ts';
+import os from 'os';
 
 export class Monitor_Text_Mac extends Monitor_Text {
   private fsUsageProcess?: ChildProcess;
@@ -15,10 +16,8 @@ export class Monitor_Text_Mac extends Monitor_Text {
     super.start_monitor();
     this.shouldSendAlerts = true;
 
-    // Spawn fs_usage with upstream filtering: include target file, exclude stat64
+    // Spawn fs_usage with upstream filtering: include target file, exclude stat64/statfs64
     const escapedPath = this.file.replace(/\//g, '\\/');
-    //const excludePattern = Constants.MAC_EXCLUDE_PROGRAMS_REGEX.source;
-    // const includeOps = '(open|read|write)';
     const cmd = `fs_usage -w -f filesys \
       | grep "${escapedPath}" \
       | grep -vE "stat64|statfs64"`;
@@ -28,9 +27,9 @@ export class Monitor_Text_Mac extends Monitor_Text {
     const stdout = this.fsUsageProcess.stdout!;
     stdout.setEncoding('utf8');
     stdout.on('data', (chunk: string) => {
+      const rawLog = chunk;
       for (const line of chunk.split('\n')) {
-        // 2) Print each individual line
-        console.log('[DEBUG fs_usage line] "', line, '"');
+        //console.log('[DEBUG fs_usage line] "', line, '"');
 
         const trimmed = line.trim();
         if (!trimmed) continue;
@@ -44,7 +43,7 @@ export class Monitor_Text_Mac extends Monitor_Text {
         stat(this.file, (err, stats: Stats) => {
           if (err) return console.error('stat error:', err);
           if (stats.atimeMs > this.last_access_time.getTime()) {
-            this.handleAccess(stats, pid, procName);
+            this.handleAccess(stats, pid, procName, rawLog);
           }
         });
       }
@@ -60,30 +59,23 @@ export class Monitor_Text_Mac extends Monitor_Text {
     console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via filtered fs_usage`);
   }
 
-  private handleAccess(stat: Stats, pid: string, procName: string) {
+  private handleAccess(stat: Stats, pid: string, procName: string, rawLog: string) {
     const accessDate = new Date(stat.atimeMs);
     if (accessDate > this.last_access_time) {
       this.last_access_time = accessDate;
-      // Lookup user via lsof and send alert
-      if (pid) {
-        exec(`lsof -p ${pid} | awk 'NR==2 {print $3}'`, (err, stdout) => {
-          const user = err ? '' : stdout.trim() || '';
-          this.sendAlert(accessDate, user, pid, procName);
-        });
-      } else {
-        this.sendAlert(accessDate, '', pid, procName);
-      }
+      const user = os.userInfo().username;
+      this.sendAlert(accessDate, user, pid, procName, rawLog);
     }
   }
 
-  private sendAlert(accessDate: Date, user: string, pid: string, procName: string) {
+  private sendAlert(accessDate: Date, user: string, pid: string, procName: string, rawLog: string) {
     const postData = {
       token_id: this.token.token_id,
       alert_epoch: accessDate.getTime(),
       accessed_by: user,
       process: procName,
       pid: pid,
-      log: 'test',
+      log: JSON.stringify({ fs_usage: rawLog }),
     };
 
     console.log('sigma:', postData);
