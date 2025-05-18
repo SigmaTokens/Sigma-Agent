@@ -15,34 +15,38 @@ export class Monitor_Text_Mac extends Monitor_Text {
     super.start_monitor();
     this.shouldSendAlerts = true;
 
-    // Spawn fs_usage (requires root)
-    this.fsUsageProcess = spawn('fs_usage', ['-w', '-f', 'filesys']);
-    if (this.fsUsageProcess.stdout) {
-      this.fsUsageProcess.stdout.setEncoding('utf8');
+    // Spawn fs_usage in pipe mode to capture stdout/stderr
+    this.fsUsageProcess = spawn('fs_usage', ['-w', '-f', 'filesys'], { stdio: ['ignore', 'pipe', 'pipe'] });
 
-      this.fsUsageProcess.stdout.on('data', (chunk: string) => {
-        for (const line of chunk.split('\n')) {
-          if (line.includes(this.file)) {
-            stat(this.file, (err, stats: Stats) => {
-              if (err) return console.error('stat error:', err);
-              // Compare against last_access_time (a Date on the base class)
-              if (stats.atimeMs > this.last_access_time.getTime()) {
-                this.onAccess(stats);
-              }
-            });
+    const stdout = this.fsUsageProcess.stdout!;
+    stdout.setEncoding('utf8');
+    stdout.on('data', (chunk: string) => {
+      for (const line of chunk.split('\n')) {
+        if (!line.includes(this.file)) continue;
+
+        // Extract process name and PID from fs_usage output
+        const regex = /^\s*\d{2}:\d{2}:\d{2}\.\d+\s+(\S+)\[(\d+)\]/;
+        const match = line.match(regex);
+        const procName = match ? match[1] : 'unknown';
+        const pid = match ? match[2] : 'unknown';
+
+        // Get fresh stats and invoke access handler
+        stat(this.file, (err, stats: Stats) => {
+          if (err) return console.error('stat error:', err);
+          if (stats.atimeMs > this.last_access_time.getTime()) {
+            this.onAccess(stats, procName, pid);
           }
-        }
-      });
-    }
+        });
+      }
+    });
 
-    if (this.fsUsageProcess.stderr) {
-      this.fsUsageProcess.stderr.on('data', (data) => console.error('fs_usage error:', data.toString()));
-    }
+    const stderr = this.fsUsageProcess.stderr!;
+    stderr.on('data', (data) => console.error('fs_usage error:', data.toString()));
 
     console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via fs_usage`);
   }
 
-  private onAccess(stat: Stats) {
+  private onAccess(stat: Stats, procName: string, pid: string) {
     const accessDate = new Date(stat.atimeMs);
     if (accessDate > this.last_access_time) {
       this.last_access_time = accessDate;
@@ -50,7 +54,7 @@ export class Monitor_Text_Mac extends Monitor_Text {
       const postData = {
         token_id: this.token.token_id,
         alert_epoch: accessDate.getTime(),
-        accessed_by: 'macOS fs_usage',
+        accessed_by: `${procName}[${pid}]`,
       };
 
       console.log('sigma:', postData);
