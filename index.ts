@@ -1,4 +1,4 @@
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 
 import express from 'express';
 import cors from 'cors';
@@ -16,7 +16,6 @@ import { agentStatus } from './routes/status.ts';
 import { getLocalIPv4s, initHoneytokens } from './utilities/init.ts';
 import { v4 as uuidv4 } from 'uuid';
 
-let socket: Socket | null = null;
 main();
 
 function main(): void {
@@ -37,17 +36,18 @@ function main(): void {
       console.error(Constants.TEXT_RED_COLOR, 'Please run as administrator');
       return;
     }
-    // prettier-ignore
-    init().then(() => {
+
+    init()
+      .then(() => {
         Globals.app = app;
-        initHoneytokens(); 
-        serveGeneral();  
+        initHoneytokens();
+        serveGeneral();
         serveHoneytoken();
         agentStatus();
         serveMonitor();
 
-        Globals.app.listen(  Globals.port , () => {
-          console.log(`[+] Server running on port ${  Globals.port }`);
+        Globals.app.listen(Globals.port, () => {
+          console.log(`[+] Server running on port ${Globals.port}`);
         });
       })
       .catch((error) => {
@@ -72,7 +72,6 @@ function validate_environment_file(): boolean {
   const env_path = path.resolve(process.cwd(), '.env');
   if (fs.existsSync(env_path)) {
     dotenv.config();
-    //TODO: add validations that all variables needed exists
     if (!process.env[Constants.AGENT_ID_VARIABLE]) {
       const new_uuid = uuidv4();
       fs.appendFileSync(env_path, `${Constants.AGENT_ID_VARIABLE}=${new_uuid}`, { encoding: 'utf-8' });
@@ -112,36 +111,36 @@ function initWebSocketConnection() {
   const agentId = process.env[Constants.AGENT_ID_VARIABLE];
   const managerHost = process.env.MANAGER_IP;
   const managerPort = process.env.MANAGER_PORT;
-  const wsUrl = `ws://${managerHost}:${managerPort}`; // ✅ simplified root connection
+  const wsUrl = `ws://${managerHost}:${managerPort}`;
 
-  socket = io(wsUrl, {
+  Globals.socket = io(wsUrl, {
     query: { agentId },
     transports: ['websocket'],
     reconnection: true,
   });
 
-  socket.on('connect', () => {
+  Globals.socket.on('connect', () => {
     console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] Connected to manager as', agentId);
   });
 
-  socket.on('disconnect', () => {
+  Globals.socket.on('disconnect', () => {
     console.log(Constants.TEXT_RED_COLOR, '[WebSocket] Disconnected from manager');
   });
 
-  socket.on('connect_error', (err) => {
+  Globals.socket.on('connect_error', (err) => {
     console.log(Constants.TEXT_RED_COLOR, '[WebSocket] Connection error:', err.message);
   });
 
-  socket.on('command', ({ action, payload }) => {
+  Globals.socket.on('command', ({ action, payload }) => {
     console.log(Constants.TEXT_GREEN_COLOR, `[WebSocket] Received command: ${action}`, payload);
   });
 
   setInterval(() => {
-    socket?.emit('statusUpdate', {
+    Globals.socket?.emit('statusUpdate', {
       status: {
         platform: process.platform,
         time: new Date().toISOString(),
       },
     });
-  }, 10_000);
+  }, 60_000);
 }

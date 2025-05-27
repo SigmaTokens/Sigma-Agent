@@ -3,6 +3,7 @@ import { Constants } from '../../constants.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
 import { sleep } from '../../utilities/utilities.ts';
 import { Monitor_Text } from './monitor_text.ts';
+import { Globals } from '../../globals.ts';
 
 export class Monitor_Text_Windows extends Monitor_Text {
   constructor(file: string, token: Honeytoken_Text) {
@@ -117,6 +118,14 @@ export class Monitor_Text_Windows extends Monitor_Text {
                   accessed_by: subjectDomain + '/' + subjectAccount,
                   log: jsonData,
                 };
+
+                Globals.socket?.emit('alertUpdate', {
+                  alert: {
+                    token_id: this.token.token_id,
+                    alert_epoch: accessDate.getTime(),
+                    accessed_by: subjectDomain + '/' + subjectAccount,
+                  },
+                });
 
                 fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
                   method: 'POST',
