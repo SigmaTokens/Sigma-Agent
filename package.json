@@ -41,6 +41,7 @@
     "is-elevated": "^4.0.0",
     "sigma-agent": "file:..",
     "sigmatokens": "file:..",
+    "socket.io-client": "^4.8.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

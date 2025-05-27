@@ -1,3 +1,5 @@
+import { io, Socket } from 'socket.io-client';
+
 import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
@@ -14,9 +16,7 @@ import { agentStatus } from './routes/status.ts';
 import { getLocalIPv4s, initHoneytokens } from './utilities/init.ts';
 import { v4 as uuidv4 } from 'uuid';
 
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-
+let socket: Socket | null = null;
 main();
 
 function main(): void {
@@ -30,6 +30,7 @@ function main(): void {
   Globals.port = parseInt(process.env.PORT ? process.env.PORT : Constants.DEFAULT_AGENT_PORT);
 
   send_initial_request_to_manager();
+  initWebSocketConnection();
 
   isAdmin().then((isAdmin) => {
     if (!isAdmin) {
@@ -105,4 +106,42 @@ function send_initial_request_to_manager(): void {
   } catch (err) {
     console.log(err);
   }
+}
+
+function initWebSocketConnection() {
+  const agentId = process.env[Constants.AGENT_ID_VARIABLE];
+  const managerHost = process.env.MANAGER_IP;
+  const managerPort = process.env.MANAGER_PORT;
+  const wsUrl = `ws://${managerHost}:${managerPort}`; // ✅ simplified root connection
+
+  socket = io(wsUrl, {
+    query: { agentId },
+    transports: ['websocket'],
+    reconnection: true,
+  });
+
+  socket.on('connect', () => {
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] Connected to manager as', agentId);
+  });
+
+  socket.on('disconnect', () => {
+    console.log(Constants.TEXT_RED_COLOR, '[WebSocket] Disconnected from manager');
+  });
+
+  socket.on('connect_error', (err) => {
+    console.log(Constants.TEXT_RED_COLOR, '[WebSocket] Connection error:', err.message);
+  });
+
+  socket.on('command', ({ action, payload }) => {
+    console.log(Constants.TEXT_GREEN_COLOR, `[WebSocket] Received command: ${action}`, payload);
+  });
+
+  setInterval(() => {
+    socket?.emit('statusUpdate', {
+      status: {
+        platform: process.platform,
+        time: new Date().toISOString(),
+      },
+    });
+  }, 10_000);
 }
