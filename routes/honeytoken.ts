@@ -43,7 +43,7 @@ export function serveHoneytoken() {
         }
 
         received_token.startMonitor();
-        console.log('cool');
+
         res.status(200).json({ success: 'honeytoken has been deployed and monitored!' });
         return;
       }
