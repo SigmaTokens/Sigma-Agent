@@ -6,6 +6,7 @@ import { Honeytoken_Text } from '../classes/text/honeytoken_text.ts';
 import { Globals } from '../globals.ts';
 import { isFromManager } from '../utilities/auth.ts';
 import { HoneytokenType } from '../utilities/typing.ts';
+import { Honeytoken_API } from '../classes/api/honeytoken_api.ts';
 
 export function serveHoneytoken() {
   const router = Router();
@@ -16,8 +17,22 @@ export function serveHoneytoken() {
     const { group_id, type, grade, expiration_date, api_port, apis } = req.body;
 
     if (type === HoneytokenType.Text) {
-      // TODO: add Honeytoken_API
+      const api_honeytoken: Honeytoken_API = await Honeytoken_API.create(
+        group_id,
+        expiration_date,
+        grade,
+        api_port,
+        apis,
+      );
+
+      if (api_honeytoken) {
+        Globals.api_honeytokens.push(api_honeytoken);
+        res.status(200).json({ success: 'honeytoken has been deployed and monitored!' });
+        return;
+      }
     }
+    res.status(500).json({ failure: 'failed to add token' });
+    return;
   });
 
   router.post('/honeytoken/text/add', async (req, res) => {
