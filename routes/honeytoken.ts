@@ -9,7 +9,7 @@ import { isFromManager } from '../utilities/auth.ts';
 export function serveHoneytoken() {
   const router = Router();
 
-  router.post('/honeytoken/add', async (req, res) => {
+  router.post('/honeytoken/text/add', async (req, res) => {
     try {
       const origin = req.get('origin') || '';
       if (!isFromManager(origin)) {
