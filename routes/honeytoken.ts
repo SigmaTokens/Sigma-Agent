@@ -9,6 +9,12 @@ import { isFromManager } from '../utilities/auth.ts';
 export function serveHoneytoken() {
   const router = Router();
 
+  router.post('/honeytoken/api/add', async (req, res) => {
+    console.log(req.body);
+
+    const { group_id, type };
+  });
+
   router.post('/honeytoken/text/add', async (req, res) => {
     try {
       const origin = req.get('origin') || '';
@@ -16,7 +22,7 @@ export function serveHoneytoken() {
         res.status(500).json({ failure: 'not requested by the manager!' });
         return;
       }
-      console.log({ received_data: req.body });
+
       const { token_id, group_id, type, file_name, location, grade, expiration_date, notes, data } = req.body;
 
       let received_token = null;
@@ -34,7 +40,7 @@ export function serveHoneytoken() {
         );
 
       if (received_token) {
-        Globals.tokens.push(received_token);
+        Globals.text_honeytokens.push(received_token);
 
         const filePath = path.join(location, file_name);
 
@@ -70,14 +76,14 @@ export function serveHoneytoken() {
         return;
       }
 
-      // Find and remove the token from Globals.tokens
-      const tokenIndex = Globals.tokens.findIndex((t) => t.getTokenID() === token_id);
+      // Find and remove the token from Globals.text_honeytokens
+      const tokenIndex = Globals.text_honeytokens.findIndex((t) => t.getTokenID() === token_id);
       if (tokenIndex === -1) {
         res.status(404).json({ failure: 'Honeytoken not found' });
         return;
       }
 
-      const tokenToRemove = Globals.tokens[tokenIndex] as Honeytoken_Text;
+      const tokenToRemove = Globals.text_honeytokens[tokenIndex] as Honeytoken_Text;
 
       try {
         // Stop monitoring first
@@ -97,7 +103,7 @@ export function serveHoneytoken() {
         }
 
         // Remove from global tokens array
-        Globals.tokens.splice(tokenIndex, 1);
+        Globals.text_honeytokens.splice(tokenIndex, 1);
 
         res.status(200).json({ success: 'Honeytoken removed successfully' });
         return;
@@ -126,7 +132,7 @@ export function serveHoneytoken() {
 
       let isMonitoring = false;
 
-      for (const token of Globals.tokens) {
+      for (const token of Globals.text_honeytokens) {
         if (token instanceof Honeytoken_Text && token.getTokenID() === token_id && token.isMonitoring()) {
           isMonitoring = true;
           break;
@@ -152,7 +158,7 @@ export function serveHoneytoken() {
 
       const statuses: Record<string, boolean> = {};
 
-      for (const token of Globals.tokens) {
+      for (const token of Globals.text_honeytokens) {
         if (token instanceof Honeytoken_Text) {
           // Use token_id as the key and isMonitoring() result as value
           statuses[token.token_id] = token.isMonitoring();
@@ -184,7 +190,7 @@ export function serveHoneytoken() {
         return;
       }
 
-      const token = Globals.tokens.find((t) => t.getTokenID() === token_id) as Honeytoken_Text;
+      const token = Globals.text_honeytokens.find((t) => t.getTokenID() === token_id) as Honeytoken_Text;
 
       if (!token) {
         res.status(404).json({ failure: 'Honeytoken not found' });
@@ -228,7 +234,7 @@ export function serveHoneytoken() {
         return;
       }
 
-      const token = Globals.tokens.find((t) => t.getTokenID() === token_id);
+      const token = Globals.text_honeytokens.find((t) => t.getTokenID() === token_id);
 
       if (!token) {
         console.log('Honeytoken not found');

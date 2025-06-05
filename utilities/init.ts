@@ -34,7 +34,7 @@ export async function initHoneytokens(): Promise<void> {
       throw new Error('Invalid response format: expected array of honeytokens');
     }
 
-    Globals.tokens = [];
+    Globals.text_honeytokens = [];
 
     for (const tokenData of tokens) {
       try {
@@ -49,16 +49,16 @@ export async function initHoneytokens(): Promise<void> {
           tokenData.file_name,
         );
 
-        Globals.tokens.push(token);
+        Globals.text_honeytokens.push(token);
       } catch (tokenError) {
         console.error('Failed to initialize token:', tokenError);
       }
     }
 
-    console.log(`Successfully initialized ${Globals.tokens.length} honeytokens`);
+    console.log(`Successfully initialized ${Globals.text_honeytokens.length} honeytokens`);
   } catch (error) {
     console.error('Failed to initialize honeytokens:', error);
-    Globals.tokens = [];
+    Globals.text_honeytokens = [];
     throw error;
   }
 }
