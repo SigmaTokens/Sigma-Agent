@@ -5,6 +5,7 @@ import * as path from 'path';
 import { Honeytoken_Text } from '../classes/text/honeytoken_text.ts';
 import { Globals } from '../globals.ts';
 import { isFromManager } from '../utilities/auth.ts';
+import { HoneytokenType } from '../utilities/typing.ts';
 
 export function serveHoneytoken() {
   const router = Router();
@@ -12,7 +13,11 @@ export function serveHoneytoken() {
   router.post('/honeytoken/api/add', async (req, res) => {
     console.log(req.body);
 
-    const { group_id, type };
+    const { group_id, type, grade, expiration_date, api_port, apis } = req.body;
+
+    if (type === HoneytokenType.Text) {
+      // TODO: add Honeytoken_API
+    }
   });
 
   router.post('/honeytoken/text/add', async (req, res) => {
@@ -27,7 +32,7 @@ export function serveHoneytoken() {
 
       let received_token = null;
 
-      if (type === 'text')
+      if (type === HoneytokenType.Text)
         received_token = await Honeytoken_Text.create(
           token_id,
           group_id,
@@ -92,7 +97,7 @@ export function serveHoneytoken() {
         // Remove the physical file if it exists
         console.log('the honeytoken to remove type: ', tokenToRemove.getType());
 
-        if (tokenToRemove.getType() === 'text') {
+        if (tokenToRemove.getType() === HoneytokenType.Text) {
           const fullPath = path.join(tokenToRemove.getLocation(), tokenToRemove.getFileName());
 
           console.log(`[!] Deleting honeytoken file: ${fullPath}`);
