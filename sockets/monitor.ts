@@ -5,7 +5,7 @@ import { Honeytoken_Text } from '../classes/text/honeytoken_text.ts';
 export function registerMonitorEventHandlers() {
   Globals.socket.on('STOP_AGENT', (callback) => {
     console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] stopping agent!');
-    if (Globals.tokens.length === 0) {
+    if (Globals.text_honeytokens.length === 0) {
       console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] No honeytokens to stop');
       return callback({
         status: 'stopped',
@@ -15,7 +15,7 @@ export function registerMonitorEventHandlers() {
     let anyStopped = false;
     let allSkipped = true;
 
-    for (const token of Globals.tokens) {
+    for (const token of Globals.text_honeytokens) {
       if (token instanceof Honeytoken_Text) {
         if (token.isMonitoring()) {
           token.stopMonitor();
@@ -36,7 +36,7 @@ export function registerMonitorEventHandlers() {
 
   Globals.socket.on('START_AGENT', (callback) => {
     console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] starting agent!');
-    if (Globals.tokens.length === 0) {
+    if (Globals.text_honeytokens.length === 0) {
       console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] No honeytokens to monitor');
       return callback({
         status: 'started',
@@ -46,7 +46,7 @@ export function registerMonitorEventHandlers() {
     let anyStarted = false;
     let allSkipped = true;
 
-    for (const token of Globals.tokens) {
+    for (const token of Globals.text_honeytokens) {
       if (token instanceof Honeytoken_Text) {
         if (!token.isMonitoring()) {
           token.startMonitor();
