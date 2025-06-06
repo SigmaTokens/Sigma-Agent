@@ -1,10 +1,6 @@
-import { HoneytokenType } from '../../interfaces/type.ts';
+import { HoneytokenType } from '../../utilities/typing.ts';
 import { Honeytoken } from '../abstract/Honeytoken.ts';
 import { Monitor_Text } from './monitor_text.ts';
-import { Monitor_Text_Windows } from './monitor_text_windows.ts';
-import { Monitor_Text_Linux } from './monitor_text_linux.ts';
-import { Monitor_Text_Mac } from './monitor_text_mac.ts';
-import { isWindows, isMac, isLinux } from '../../utilities/host.ts';
 import fs from 'fs';
 import path from 'path';
 import { Constants } from '../../constants.ts';
