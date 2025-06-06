@@ -16,7 +16,9 @@ export function serveHoneytoken() {
 
     const { group_id, type, grade, expiration_date, api_port, apis } = req.body;
 
-    if (type === HoneytokenType.Text) {
+    console.log('\ngay\n');
+
+    if (type === HoneytokenType.API) {
       const api_honeytoken: Honeytoken_API = await Honeytoken_API.create(
         group_id,
         expiration_date,
