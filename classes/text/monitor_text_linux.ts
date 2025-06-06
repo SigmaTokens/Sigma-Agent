@@ -54,7 +54,7 @@ export class Monitor_Text_Linux extends Monitor_Text {
       console.error('inotifywait error:', msg);
     });
 
-    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via inotifywait`);
+    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via inotifywait`, Constants.TEXT_WHITE_COLOR);
   }
 
   private sendAlert(accessDate: Date, user: string, event: string, rawLog: string) {
@@ -66,7 +66,7 @@ export class Monitor_Text_Linux extends Monitor_Text {
       log: JSON.stringify({ inotify: rawLog }),
     };
 
-    console.log('sigma:', postData);
+    // console.log(Constants.TEXT_YELLOW_COLOR, `Alert for ${this.file} at ${accessDate.toISOString()} by ${user}: ${event}`, Constants.TEXT_WHITE_COLOR);
     fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -81,6 +81,6 @@ export class Monitor_Text_Linux extends Monitor_Text {
       await new Promise<void>((resolve) => this.watcherProcess!.once('exit', () => resolve()));
       this.watcherProcess = undefined;
     }
-    console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`);
+    console.log(Constants.TEXT_YELLOW_COLOR, `Stopped monitoring ${this.file}`, Constants.TEXT_WHITE_COLOR);
   }
 }

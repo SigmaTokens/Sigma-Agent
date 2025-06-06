@@ -47,7 +47,7 @@ function main(): void {
         serveMonitor();
 
         Globals.app.listen(Globals.port, () => {
-          console.log(`[+] Server running on port ${Globals.port}`);
+          console.log(Constants.TEXT_GREEN_COLOR,`[+] Server running on port ${Globals.port}`,Constants.TEXT_WHITE_COLOR);
         });
       })
       .catch((error) => {
@@ -59,12 +59,12 @@ function main(): void {
 
 async function init() {
   if (isWindows()) {
-    console.log('Running on Windows');
+    console.log(Constants.TEXT_GREEN_COLOR,`Running on Windows`,Constants.TEXT_WHITE_COLOR);
     await windows_enable_auditing();
   } else if (isLinux()) {
-    console.log('Running on Linux');
+    console.log(Constants.TEXT_GREEN_COLOR,`Running on Linux`,Constants.TEXT_WHITE_COLOR);
   } else if (isMac()) {
-    console.log('Running on Mac');
+    console.log(Constants.TEXT_GREEN_COLOR,`Running on Mac`,Constants.TEXT_WHITE_COLOR);
   }
 }
 
@@ -80,15 +80,14 @@ function validate_environment_file(): boolean {
     console.log(Constants.TEXT_YELLOW_COLOR, `Your uuid is: ${process.env[Constants.AGENT_ID_VARIABLE]}`);
     return true;
   } else {
-    console.log(Constants.TEXT_RED_COLOR, 'Error: environment file .env not found');
+    console.error(Constants.TEXT_RED_COLOR, '[-] Error: environment file .env not found');
     return false;
   }
 }
 
 function send_initial_request_to_manager(): void {
   const ips = getLocalIPv4s();
-  console.log(ips);
-  console.log(ips[0]);
+  
   try {
     fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/agents/add`, {
       method: 'POST',
@@ -100,10 +99,10 @@ function send_initial_request_to_manager(): void {
         port: Globals.port,
       }),
     }).then((res) => {
-      console.log(res);
+      console.log(Constants.TEXT_GREEN_COLOR,`[+] Sending initial request to manager was sucsseful`, Constants.TEXT_WHITE_COLOR);
     });
   } catch (err) {
-    console.log(err);
+    console.error(Constants.TEXT_RED_COLOR, '[-] Error sending initial request to manager:', err, Constants.TEXT_WHITE_COLOR);
   }
 }
 
@@ -120,19 +119,19 @@ function initWebSocketConnection() {
   });
 
   Globals.socket.on('connect', () => {
-    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] Connected to manager as', agentId);
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] Connected to manager as', agentId, Constants.TEXT_WHITE_COLOR);
   });
 
   Globals.socket.on('disconnect', () => {
-    console.log(Constants.TEXT_RED_COLOR, '[WebSocket] Disconnected from manager');
+    console.log(Constants.TEXT_RED_COLOR, '[WebSocket] Disconnected from manager', Constants.TEXT_WHITE_COLOR);
   });
 
   Globals.socket.on('connect_error', (err) => {
-    console.log(Constants.TEXT_RED_COLOR, '[WebSocket] Connection error:', err.message);
+    console.log(Constants.TEXT_RED_COLOR, '[WebSocket] Connection error:', err.message, Constants.TEXT_WHITE_COLOR);
   });
 
   Globals.socket.on('command', ({ action, payload }) => {
-    console.log(Constants.TEXT_GREEN_COLOR, `[WebSocket] Received command: ${action}`, payload);
+    console.log(Constants.TEXT_GREEN_COLOR, `[WebSocket] Received command: ${action}`, payload, Constants.TEXT_WHITE_COLOR);
   });
 
   setInterval(() => {

@@ -69,12 +69,12 @@ function is_extension_updated(extension) {
 
 function install_extension(extension) {
   try {
-    console.log(`[+] Checking extension: ${extension}`);
+    console.log(Constants.TEXT_YELLOW_COLOR, `[+] Checking extension: ${extension}`, Constants.TEXT_WHITE_COLOR);
 
     if (is_extension_installed(extension)) {
       is_extension_updated(extension).then((updateCheck) => {
         if (updateCheck) {
-          console.log(`[+] ${extension} update available, upgrading...`);
+          console.log(Constants.TEXT_WHITE_COLOR, `[+] ${extension} update available, upgrading...`, Constants.TEXT_WHITE_COLOR);
 
           if (process.platform === 'linux') {
             execSync(`sudo -u $SUDO_USER code --install-extension ${extension} --force`);
@@ -83,11 +83,11 @@ function install_extension(extension) {
             execSync(`code --install-extension ${extension} --force`);
           }
         } else {
-          console.log(`[+] ${extension} is up-to-date`);
+          console.log(Constants.TEXT_GREEN_COLOR, `[+] ${extension} is up-to-date`, Constants.TEXT_WHITE_COLOR);
         }
       });
     } else {
-      console.log(`[+] Installing ${extension}...`);
+      console.log(`[+] Installing ${extension}...`, Constants.TEXT_WHITE_COLOR);
       if (process.platform === 'linux') {
         execSync(`sudo -u $SUDO_USER code --install-extension ${extension} --force`);
       } else {
@@ -96,7 +96,7 @@ function install_extension(extension) {
       }
     }
   } catch (error) {
-    console.error(`[-] Failed: ${error.message}`);
+    console.error(Constants.TEXT_RED_COLOR, `[-] Failed: ${error.message}`, Constants.TEXT_WHITE_COLOR);
     process.exit(1);
   }
 }
@@ -104,16 +104,16 @@ function install_extension(extension) {
 function install_extensions() {
   const prettier = 'esbenp.prettier-vscode';
   install_extension(prettier);
-  console.log('[+] Extension check complete!');
+  console.log(Constants.TEXT_GREEN_COLOR, '[+] Extension check complete!', Constants.TEXT_WHITE_COLOR);
 }
 
 function create_file(filePath, content) {
   if (!fs.existsSync(filePath)) {
     fs.writeFileSync(filePath, content, 'utf8');
-    console.log(`[+] Created: ${filePath}`);
+    console.log(Constants.TEXT_GREEN_COLOR, `[+] Created: ${filePath}`, Constants.TEXT_WHITE_COLOR);
   } else {
     fs.writeFileSync(filePath, content, 'utf8');
-    console.log(`[+] Updated: ${filePath}`);
+    console.log(Constants.TEXT_YELLOW_COLOR, `[+] Updated: ${filePath}`, Constants.TEXT_WHITE_COLOR);
   }
 }
 
@@ -153,16 +153,16 @@ function setup_vscode_settings(rootDir) {
 
 function install_deps() {
   try {
-    console.log('[+] Updating deps for agent~~~');
+    console.log(Constants.TEXT_YELLOW_COLOR, '[+] Updating deps for agent~~~', Constants.TEXT_WHITE_COLOR);
     if (process.platform !== 'linux') {
       execSync('npm install', { stdio: 'inherit' });
     } else if (process.platform === 'linux') {
       install_deps_linux();
     }
 
-    console.log('[+] Deps update complete!');
+    console.log(Constants.TEXT_GREEN_COLOR, '[+] Deps update complete!', Constants.TEXT_WHITE_COLOR);
   } catch (error) {
-    console.error('[-] Failed to update deps:', error.message);
+    console.error(Constants.TEXT_RED_COLOR, '[-] Failed to update deps:', error.message, Constants.TEXT_WHITE_COLOR);
     process.exit(-1);
   }
 }
@@ -189,17 +189,17 @@ function install_dep_linux(dep_name) {
   });
 
   if (!pkg) {
-    console.error('[-] No supported package manager found. Install auditd and inotify-tools manually.');
+    console.error(Constants.TEXT_RED_COLOR, '[-] No supported package manager found. Install auditd and inotify-tools manually.', Constants.TEXT_WHITE_COLOR);
     process.exit(1);
   }
 
-  console.log(`[+] Installing deps via ${pkg.cmd}…`);
+  console.log(Constants.TEXT_YELLOW_COLOR, `[+] Installing deps via ${pkg.cmd}…`);
   execSync(`sudo ${pkg.install}`, { stdio: 'inherit' });
 }
 
 function run_sigmatokens(mode) {
   try {
-    console.log(`[+] Starting in ${mode} mode~~~`);
+    console.log(Constants.TEXT_GREEN_COLOR, `[+] Starting in ${mode} mode~~~`, Constants.TEXT_WHITE_COLOR);
     execSync(`npm run ${mode}`, { stdio: 'inherit' });
   } catch (error) {
     console.error('[-] Failed to start:', error.message);

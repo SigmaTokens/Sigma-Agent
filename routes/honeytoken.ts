@@ -5,6 +5,7 @@ import * as path from 'path';
 import { Honeytoken_Text } from '../classes/text/honeytoken_text.ts';
 import { Globals } from '../globals.ts';
 import { isFromManager } from '../utilities/auth.ts';
+import { Constants } from '../constants.ts';
 
 export function serveHoneytoken() {
   const router = Router();
@@ -16,7 +17,6 @@ export function serveHoneytoken() {
         res.status(500).json({ failure: 'not requested by the manager!' });
         return;
       }
-      console.log({ received_data: req.body });
       const { token_id, group_id, type, file_name, location, grade, expiration_date, notes, data } = req.body;
 
       let received_token = null;
@@ -82,17 +82,14 @@ export function serveHoneytoken() {
       try {
         // Stop monitoring first
         tokenToRemove.stopMonitor();
-
-        // Remove the physical file if it exists
-        console.log('the honeytoken to remove type: ', tokenToRemove.getType());
-
+        // console.log(Constants.TEXT_YELLOW_COLOR, `Stopped monitoring for token: ${tokenToRemove.getTokenID()}`);
+        
         if (tokenToRemove.getType() === 'text') {
           const fullPath = path.join(tokenToRemove.getLocation(), tokenToRemove.getFileName());
 
-          console.log(`[!] Deleting honeytoken file: ${fullPath}`);
           if (fs.existsSync(fullPath)) {
             fs.rmSync(fullPath);
-            console.log(`[!] Deleted!`);
+            console.log(Constants.TEXT_YELLOW_COLOR, `Deleted honeytoken file: ${fullPath}`, Constants.TEXT_WHITE_COLOR);
           }
         }
 
@@ -218,7 +215,7 @@ export function serveHoneytoken() {
       const { token_id } = req.body;
 
       if (!isFromManager(origin)) {
-        console.warn(`Unauthorized monitoring attempt from ${origin}`);
+        console.warn(Constants.TEXT_YELLOW_COLOR, `Unauthorized monitoring attempt from ${origin}`, Constants.TEXT_WHITE_COLOR);
         res.status(403).json({ failure: 'Access denied' });
         return;
       }
@@ -231,19 +228,16 @@ export function serveHoneytoken() {
       const token = Globals.tokens.find((t) => t.getTokenID() === token_id);
 
       if (!token) {
-        console.log('Honeytoken not found');
         res.status(404).json({ failure: 'Honeytoken not found' });
         return;
       }
 
       if (!(token instanceof Honeytoken_Text)) {
-        console.log('Invalid honeytoken type');
         res.status(400).json({ failure: 'Invalid honeytoken type' });
         return;
       }
 
       if (!token.isMonitoring()) {
-        console.log('Monitoring not active for this token');
         res.status(200).json({
           success: 'Monitoring not active for this token',
         });
@@ -251,7 +245,7 @@ export function serveHoneytoken() {
       }
 
       token.stopMonitor();
-      console.log('Monitoring stopped successfully');
+      console.log(Constants.TEXT_YELLOW_COLOR, 'Monitoring stopped successfully', Constants.TEXT_WHITE_COLOR);
       res.status(200).json({
         success: 'Monitoring stopped successfully',
       });

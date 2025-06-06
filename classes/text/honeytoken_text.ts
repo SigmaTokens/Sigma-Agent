@@ -7,6 +7,7 @@ import { Monitor_Text_Mac } from './monitor_text_mac.ts';
 import { isWindows, isMac, isLinux } from '../../utilities/host.ts';
 import fs from 'fs';
 import path from 'path';
+import { Constants } from '../../constants.ts';
 
 export class Honeytoken_Text extends Honeytoken {
   location: string;
@@ -61,7 +62,7 @@ export class Honeytoken_Text extends Honeytoken {
 
       const fullPath = path.join(this.location, this.file_name);
       fs.writeFileSync(fullPath, data, { encoding: 'utf8' });
-      console.log(`File created at: ${fullPath}`);
+      console.log(Constants.TEXT_GREEN_COLOR, `File created at: ${fullPath}`, Constants.TEXT_WHITE_COLOR);
     } catch (error) {
       console.error(`Error creating file: ${error}`);
       throw error;

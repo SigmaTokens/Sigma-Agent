@@ -20,9 +20,9 @@ export function isMac(): boolean {
 export async function windows_enable_auditing() {
   exec('auditpol.exe /set /subcategory:"File System" /success:enable', (error, stdout, stderr) => {
     if (error) {
-      console.error(Constants.TEXT_RED_COLOR, `Error enabling audit policy: ${error}`);
+      console.error(Constants.TEXT_RED_COLOR, `Error enabling audit policy: ${error}`, Constants.TEXT_WHITE_COLOR);
       process.exit(1);
     }
-    console.log(Constants.TEXT_GREEN_COLOR, 'Audit Object Access enabled:', stdout);
+    console.log(Constants.TEXT_YELLOW_COLOR, 'Audit Object Access enabled:', stdout, Constants.TEXT_WHITE_COLOR);
   });
 }

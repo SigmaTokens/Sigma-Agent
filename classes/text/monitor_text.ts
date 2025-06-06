@@ -37,7 +37,7 @@ export abstract class Monitor_Text extends Monitor {
   stop_monitor(lightStop: boolean = true) {
     if (lightStop) {
       this.shouldSendAlerts = false;
-      console.log(Constants.TEXT_YELLOW_COLOR, `Alerts paused for ${this.file}`);
+      console.log(Constants.TEXT_YELLOW_COLOR, `Alerts paused for ${this.file}`, Constants.TEXT_WHITE_COLOR);
     } else {
       this.isMonitoring = false;
       this.shouldSendAlerts = false;

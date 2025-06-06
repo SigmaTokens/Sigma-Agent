@@ -13,15 +13,14 @@ export class Monitor_Text_Windows extends Monitor_Text {
   async stop_monitor(lightStop: boolean = true) {
     super.stop_monitor(lightStop);
     await this.remove_audit_rule_windows();
-    console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`);
+    console.log(Constants.TEXT_YELLOW_COLOR, `Stopped monitoring ${this.file}`, Constants.TEXT_WHITE_COLOR);
   }
 
   async start_monitor() {
     super.start_monitor();
     this.monitorWindows(); // ✅ don’t await the infinite loop
-    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file}`);
+    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file}`, Constants.TEXT_WHITE_COLOR);
     this.shouldSendAlerts = true;
-    console.log(Constants.TEXT_GREEN_COLOR, `Alerts enabled for ${this.file}`);
   }
 
   private async remove_audit_rule_windows() {
@@ -38,12 +37,11 @@ export class Monitor_Text_Windows extends Monitor_Text {
         console.error(Constants.TEXT_RED_COLOR, `Error removing audit rule from ${this.file}: ${error}`);
         return;
       }
-      console.log(Constants.TEXT_GREEN_COLOR, `Successfully removed audit rules from ${this.file}`);
+      console.log(Constants.TEXT_YELLOW_COLOR, `Successfully removed audit rules from ${this.file}`, Constants.TEXT_WHITE_COLOR);
     });
   }
 
   private async monitorWindows() {
-    console.log(`Called startMonitor() on token ${this.token.token_id}`);
     await this.add_audit_rule_windows();
     const monitorLoop = async () => {
       while (true) {
@@ -66,9 +64,9 @@ export class Monitor_Text_Windows extends Monitor_Text {
     const command = `powershell.exe -NoProfile -Command "${oneLinePsCommand}"`;
     exec(command, { encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
-        console.error(Constants.TEXT_RED_COLOR, `Error adding auditing rule to ${this.file} : ${error}`);
+        console.error(Constants.TEXT_RED_COLOR, `Error adding auditing rule to ${this.file} : ${error}`, Constants.TEXT_WHITE_COLOR);
       }
-      console.log(Constants.TEXT_GREEN_COLOR, `Successfully added audit_rule to ${this.file}}`);
+      console.log(Constants.TEXT_GREEN_COLOR, `Successfully added audit_rule to ${this.file}}`, Constants.TEXT_WHITE_COLOR);
     });
   }
 

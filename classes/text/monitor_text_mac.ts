@@ -29,8 +29,6 @@ export class Monitor_Text_Mac extends Monitor_Text {
     stdout.on('data', (chunk: string) => {
       const rawLog = chunk;
       for (const line of chunk.split('\n')) {
-        //console.log('[DEBUG fs_usage line] "', line, '"');
-
         const trimmed = line.trim();
         if (!trimmed) continue;
 
@@ -56,7 +54,7 @@ export class Monitor_Text_Mac extends Monitor_Text {
       console.error('fs_usage error:', msg);
     });
 
-    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via filtered fs_usage`);
+    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via filtered fs_usage`, Constants.TEXT_WHITE_COLOR);
   }
 
   private handleAccess(stat: Stats, pid: string, procName: string, rawLog: string) {
@@ -78,7 +76,7 @@ export class Monitor_Text_Mac extends Monitor_Text {
       log: JSON.stringify({ fs_usage: rawLog }),
     };
 
-    console.log('sigma:', postData);
+    // console.log(Constants.TEXT_YELLOW_COLOR, `Alert for ${this.file} at ${accessDate.toISOString()} by ${user}: ${procName} (${pid})`, Constants.TEXT_WHITE_COLOR);
     fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -93,6 +91,6 @@ export class Monitor_Text_Mac extends Monitor_Text {
       await new Promise<void>((resolve) => this.fsUsageProcess!.once('exit', () => resolve()));
       this.fsUsageProcess = undefined;
     }
-    console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`);
+    console.log(Constants.TEXT_YELLOW_COLOR, `Stopped monitoring ${this.file}`, Constants.TEXT_WHITE_COLOR);
   }
 }
