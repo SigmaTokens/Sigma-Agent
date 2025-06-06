@@ -2,7 +2,7 @@ import { Globals } from '../globals.ts';
 import { Honeytoken_Text } from '../classes/text/honeytoken_text.ts';
 import { networkInterfaces } from 'os';
 
-export async function initHoneytokens(): Promise<void> {
+export async function initHoneytokens(): Promise<Boolean> {
   try {
     const serverUrl = `http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/honeytokens/agent`;
 
@@ -25,13 +25,15 @@ export async function initHoneytokens(): Promise<void> {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      console.error(`HTTP error! status: ${response.status}`);
+      return false;
     }
 
     const tokens = await response.json();
 
     if (!Array.isArray(tokens)) {
-      throw new Error('Invalid response format: expected array of honeytokens');
+      console.error('Invalid response format: expected array of honeytokens');
+      return false;
     }
 
     Globals.text_honeytokens = [];
@@ -56,10 +58,11 @@ export async function initHoneytokens(): Promise<void> {
     }
 
     console.log(`Successfully initialized ${Globals.text_honeytokens.length} honeytokens`);
+    return true;
   } catch (error) {
     console.error('Failed to initialize honeytokens:', error);
     Globals.text_honeytokens = [];
-    throw error;
+    return false;
   }
 }
 

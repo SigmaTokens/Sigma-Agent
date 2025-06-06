@@ -15,6 +15,10 @@ import { serveGeneral } from './routes/general.ts';
 import { agentStatus } from './routes/status.ts';
 import { getLocalIPv4s, initHoneytokens } from './utilities/init.ts';
 import { v4 as uuidv4 } from 'uuid';
+import { registerGeneralEventHandlers } from './sockets/general.ts';
+import { registerHoneytokenEventHandlers } from './sockets/honeytoken.ts';
+import { registerMonitorEventHandlers } from './sockets/monitor.ts';
+import { registerStatusEventHandlers } from './sockets/status.ts';
 
 main();
 
@@ -119,28 +123,19 @@ function initWebSocketConnection() {
     reconnection: true,
   });
 
-  Globals.socket.on('connect', () => {
-    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] Connected to manager as', agentId);
-  });
-
-  Globals.socket.on('disconnect', () => {
-    console.log(Constants.TEXT_RED_COLOR, '[WebSocket] Disconnected from manager');
-  });
-
-  Globals.socket.on('connect_error', (err) => {
-    console.log(Constants.TEXT_RED_COLOR, '[WebSocket] Connection error:', err.message);
-  });
-
-  Globals.socket.on('command', ({ action, payload }) => {
-    console.log(Constants.TEXT_GREEN_COLOR, `[WebSocket] Received command: ${action}`, payload);
-  });
+  registerGeneralEventHandlers();
+  registerHoneytokenEventHandlers();
+  registerMonitorEventHandlers();
+  registerStatusEventHandlers();
 
   setInterval(() => {
-    Globals.socket?.emit('statusUpdate', {
+    //sending
+    Globals.socket.emit('statusUpdate', {
       status: {
         platform: process.platform,
         time: new Date().toISOString(),
       },
     });
+    //
   }, 60_000);
 }

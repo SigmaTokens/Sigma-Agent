@@ -1,0 +1,68 @@
+import { Constants } from '../constants.ts';
+import { Globals } from '../globals.ts';
+import { Honeytoken_Text } from '../classes/text/honeytoken_text.ts';
+
+export function registerMonitorEventHandlers() {
+  Globals.socket.on('STOP_AGENT', (callback) => {
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] stopping agent!');
+    if (Globals.text_honeytokens.length === 0) {
+      console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] No honeytokens to stop');
+      return callback({
+        status: 'stopped',
+      });
+    }
+
+    let anyStopped = false;
+    let allSkipped = true;
+
+    for (const token of Globals.text_honeytokens) {
+      if (token instanceof Honeytoken_Text) {
+        if (token.isMonitoring()) {
+          token.stopMonitor();
+          anyStopped = true;
+          allSkipped = false;
+        }
+      }
+    }
+    if (anyStopped || allSkipped)
+      return callback({
+        status: 'stopped',
+      });
+
+    return callback({
+      status: 'failed',
+    });
+  });
+
+  Globals.socket.on('START_AGENT', (callback) => {
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] starting agent!');
+    if (Globals.text_honeytokens.length === 0) {
+      console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] No honeytokens to monitor');
+      return callback({
+        status: 'started',
+      });
+    }
+
+    let anyStarted = false;
+    let allSkipped = true;
+
+    for (const token of Globals.text_honeytokens) {
+      if (token instanceof Honeytoken_Text) {
+        if (!token.isMonitoring()) {
+          token.startMonitor();
+          anyStarted = true;
+          allSkipped = false;
+        }
+      }
+    }
+
+    if (anyStarted || allSkipped)
+      return callback({
+        status: 'started',
+      });
+
+    return callback({
+      status: 'failed',
+    });
+  });
+}
