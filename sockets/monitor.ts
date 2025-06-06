@@ -3,6 +3,34 @@ import { Globals } from '../globals.ts';
 import { Honeytoken_Text } from '../classes/text/honeytoken_text.ts';
 
 export function registerMonitorEventHandlers() {
+  Globals.socket.on('STATUS_AGENT', (callback) => {
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] getting agent monitor status!');
+    if (Globals.text_honeytokens.length === 0) {
+      console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] No honeytokens to monitor');
+      return callback({
+        status: 'not monitoring',
+      });
+    }
+
+    let isMonitoring = false;
+
+    for (const token of Globals.text_honeytokens) {
+      if (token instanceof Honeytoken_Text && token.isMonitoring()) {
+        isMonitoring = true;
+        break;
+      }
+    }
+
+    if (isMonitoring)
+      return callback({
+        status: 'monitoring',
+      });
+
+    return callback({
+      status: 'not monitoring',
+    });
+  });
+
   Globals.socket.on('STOP_AGENT', (callback) => {
     console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] stopping agent!');
     if (Globals.text_honeytokens.length === 0) {
