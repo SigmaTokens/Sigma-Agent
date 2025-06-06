@@ -15,7 +15,7 @@ export function serveMonitor() {
 
       let isMonitoring = false;
 
-      for (const token of Globals.tokens) {
+      for (const token of Globals.text_honeytokens) {
         if (token instanceof Honeytoken_Text && token.isMonitoring()) {
           isMonitoring = true;
           break;
@@ -41,13 +41,13 @@ export function serveMonitor() {
         return;
       }
 
-      if (Globals.tokens.length === 0) {
+      if (Globals.text_honeytokens.length === 0) {
         res.status(200).json({ success: 'No honeytokens to monitor' });
         return;
       }
 
       const results = await Promise.all(
-        Globals.tokens.map(async (token) => {
+        Globals.text_honeytokens.map(async (token) => {
           try {
             if (token instanceof Honeytoken_Text && !token.isMonitoring()) {
               token.startMonitor();
@@ -70,7 +70,7 @@ export function serveMonitor() {
           success: anyStarted ? 'Partial success' : 'All tokens failed',
           failure: 'Some tokens failed to start',
           stats: {
-            total: Globals.tokens.length,
+            total: Globals.text_honeytokens.length,
             started: results.filter((r) => r.success).length,
             failed: results.filter((r) => r.error).length,
             skipped: results.filter((r) => r.skipped).length,
@@ -89,7 +89,7 @@ export function serveMonitor() {
       res.status(200).json({
         success: 'Monitoring started for all applicable honeytokens',
         stats: {
-          total: Globals.tokens.length,
+          total: Globals.text_honeytokens.length,
           started: results.filter((r) => r.success).length,
           skipped: results.filter((r) => r.skipped).length,
         },
@@ -114,7 +114,7 @@ export function serveMonitor() {
 
       let anyStopped = false;
 
-      for (const token of Globals.tokens) {
+      for (const token of Globals.text_honeytokens) {
         if (token instanceof Honeytoken_Text) {
           if (token.isMonitoring()) {
             token.stopMonitor();
