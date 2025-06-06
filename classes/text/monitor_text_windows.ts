@@ -119,13 +119,15 @@ export class Monitor_Text_Windows extends Monitor_Text {
                   log: jsonData,
                 };
 
-                Globals.socket?.emit('alertUpdate', {
+                //sending
+                Globals.socket.emit('alertUpdate', {
                   alert: {
                     token_id: this.token.token_id,
                     alert_epoch: accessDate.getTime(),
                     accessed_by: subjectDomain + '/' + subjectAccount,
                   },
                 });
+                //
 
                 fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
                   method: 'POST',
