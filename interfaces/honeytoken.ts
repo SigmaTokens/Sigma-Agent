@@ -1,4 +1,4 @@
-import { HoneytokenType } from './type.ts';
+import { HoneytokenType } from '../utilities/typing.ts';
 
 export interface I_Honeytoken {
   getTokenID(): string;

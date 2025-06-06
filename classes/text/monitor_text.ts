@@ -1,6 +1,6 @@
 import { Monitor } from '../abstract/Monitor.ts';
 import { Constants } from '../../constants.ts';
-import { isWindows, isMac, isLinux } from '../../utilities/host.ts';
+import { isWindows, isMac } from '../../utilities/host.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
 
 export abstract class Monitor_Text extends Monitor {
