@@ -263,4 +263,13 @@ export function registerHoneytokenEventHandlers() {
     const api_token = Globals.api_honeytokens.find((token) => token.getGroupID() === group_id);
     api_token?.stopMonitor();
   });
+
+  Globals.socket.on('DELETE_HONEYTOKEN_API', (payload) => {
+    const group_id = payload;
+    const index = Globals.api_honeytokens.findIndex((t) => t.getGroupID() === group_id);
+    if (index !== -1) {
+      Globals.api_honeytokens.splice(index, 1);
+    }
+    console.log('test: ', Globals.api_honeytokens);
+  });
 }
