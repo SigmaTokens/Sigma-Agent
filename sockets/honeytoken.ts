@@ -92,7 +92,6 @@ export function registerHoneytokenEventHandlers() {
   });
 
   Globals.socket.on('STATUSES_HONEYTOKENS_TEXT', async (callback) => {
-    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] statuses of honeytokens text!');
     const statuses: Record<string, boolean> = {};
 
     for (const token of Globals.text_honeytokens) {
