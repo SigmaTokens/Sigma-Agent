@@ -257,19 +257,16 @@ export function serveHoneytoken() {
       const token = Globals.text_honeytokens.find((t) => t.getTokenID() === token_id);
 
       if (!token) {
-        console.log('Honeytoken not found');
         res.status(404).json({ failure: 'Honeytoken not found' });
         return;
       }
 
       if (!(token instanceof Honeytoken_Text)) {
-        console.log('Invalid honeytoken type');
         res.status(400).json({ failure: 'Invalid honeytoken type' });
         return;
       }
 
       if (!token.isMonitoring()) {
-        console.log('Monitoring not active for this token');
         res.status(200).json({
           success: 'Monitoring not active for this token',
         });
@@ -277,7 +274,6 @@ export function serveHoneytoken() {
       }
 
       token.stopMonitor();
-      console.log('Monitoring stopped successfully');
       res.status(200).json({
         success: 'Monitoring stopped successfully',
       });

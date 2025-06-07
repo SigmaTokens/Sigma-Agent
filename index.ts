@@ -63,12 +63,9 @@ function main(): void {
 
 async function init() {
   if (isWindows()) {
-    console.log('Running on Windows');
     await windows_enable_auditing();
   } else if (isLinux()) {
-    console.log('Running on Linux');
   } else if (isMac()) {
-    console.log('Running on Mac');
   }
 }
 

@@ -1,68 +1,73 @@
 import { Globals } from '../globals.ts';
 import { Honeytoken_Text } from '../classes/text/honeytoken_text.ts';
 import { networkInterfaces } from 'os';
+import { Constants } from '../constants.ts';
+import { API_route, HoneytokenType, Token } from './typing.ts';
+import { Honeytoken_API } from '../classes/api/honeytoken_api.ts';
 
-export async function initHoneytokens(): Promise<Boolean> {
-  try {
-    const serverUrl = `http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/honeytokens/agent`;
+export async function initHoneytokens() {
+  const results = await Globals.socket.emitWithAck('GET_HONEYTOKENS', process.env[Constants.AGENT_ID_VARIABLE]);
+  const tokens: Token[] = results.tokens;
 
-    console.log('JOKER MANAGER_IP:', process.env.MANAGER_IP);
-    console.log('JOKER MANAGER_PORT:', process.env.MANAGER_PORT);
+  const groups = tokens.reduce(
+    (acc, token: Token) => {
+      if (!acc[token.group_id]) {
+        acc[token.group_id] = [];
+      }
+      acc[token.group_id].push(token);
+      return acc;
+    },
+    {} as Record<string, Token[]>,
+  );
 
-    const agent_ip = getLocalIPv4s()[0];
+  for (const [group_id, tokens] of Object.entries(groups)) {
+    const hasApi = tokens.some((tok: Token) => tok.type_id === HoneytokenType.API);
 
-    const requestBody = { agent_ip: agent_ip, agent_port: Globals.port };
+    if (hasApi) {
+      const header = tokens[0];
+      let routes: API_route[] = [];
 
-    console.log('JOKER AGENT_IP:', agent_ip);
-    console.log('JOKER AGENT_PORT:', Globals.port);
+      for (const tokenData of tokens) {
+        const route: API_route = {
+          method: tokenData.http_method,
+          route: tokenData.route,
+          response: tokenData.response,
+        };
+        routes.push(route);
+      }
 
-    const response = await fetch(serverUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
+      const api_token: Honeytoken_API = await Honeytoken_API.create(
+        header.group_id,
+        new Date(header.expire_date),
+        header.grade,
+        header.api_port,
+        routes,
+      );
+      Globals.api_honeytokens.push(api_token);
+    } else {
+      for (const tokenData of tokens) {
+        switch (tokenData.type_id) {
+          case HoneytokenType.Text:
+            try {
+              const text_honeytoken = await Honeytoken_Text.create(
+                tokenData.token_id,
+                tokenData.group_id,
+                tokenData.type_id,
+                new Date(tokenData.expire_date),
+                tokenData.grade,
+                tokenData.notes,
+                tokenData.location,
+                tokenData.file_name,
+              );
 
-    if (!response.ok) {
-      console.error(`HTTP error! status: ${response.status}`);
-      return false;
-    }
-
-    const tokens = await response.json();
-
-    if (!Array.isArray(tokens)) {
-      console.error('Invalid response format: expected array of honeytokens');
-      return false;
-    }
-
-    Globals.text_honeytokens = [];
-
-    for (const tokenData of tokens) {
-      try {
-        const token = await Honeytoken_Text.create(
-          tokenData.token_id,
-          tokenData.group_id,
-          tokenData.type_id,
-          new Date(tokenData.expire_date),
-          tokenData.grade,
-          tokenData.notes,
-          tokenData.location,
-          tokenData.file_name,
-        );
-
-        Globals.text_honeytokens.push(token);
-      } catch (tokenError) {
-        console.error('Failed to initialize token:', tokenError);
+              Globals.text_honeytokens.push(text_honeytoken);
+            } catch (err) {
+              console.log(Constants.TEXT_RED_COLOR, `Error creating token: ${tokenData.token_id}`);
+            }
+          default:
+        }
       }
     }
-
-    console.log(`Successfully initialized ${Globals.text_honeytokens.length} honeytokens`);
-    return true;
-  } catch (error) {
-    console.error('Failed to initialize honeytokens:', error);
-    Globals.text_honeytokens = [];
-    return false;
   }
 }
 
