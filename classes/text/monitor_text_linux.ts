@@ -65,7 +65,6 @@ export class Monitor_Text_Linux extends Monitor_Text {
       log: JSON.stringify({ inotify: rawLog }),
     };
 
-    console.log('sigma:', postData);
     fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

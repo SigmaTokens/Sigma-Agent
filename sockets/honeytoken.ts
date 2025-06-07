@@ -10,7 +10,6 @@ export function registerHoneytokenEventHandlers() {
   Globals.socket.on('CREATE_HONEYTOKEN_TEXT', async (payload, callback) => {
     console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] creating honeytoken text!');
     const { token_id, group_id, type, file_name, location, grade, expiration_date, notes, data } = payload;
-    console.log('token id', token_id);
 
     let received_token = null;
 
@@ -51,7 +50,6 @@ export function registerHoneytokenEventHandlers() {
     console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] deleting honeytoken text!');
 
     if (!payload) {
-      console.log('payload is required');
       return callback({
         status: 'failed',
       });
@@ -59,7 +57,6 @@ export function registerHoneytokenEventHandlers() {
 
     const token_id = payload;
     if (!token_id) {
-      console.log('token_id is required');
       return callback({
         status: 'failed',
       });
@@ -67,7 +64,6 @@ export function registerHoneytokenEventHandlers() {
 
     const tokenIndex = Globals.text_honeytokens.findIndex((t) => t.getTokenID() === token_id);
     if (tokenIndex === -1) {
-      console.log('Honeytoken not found');
       return callback({
         status: 'failed',
       });
@@ -106,8 +102,6 @@ export function registerHoneytokenEventHandlers() {
       }
     }
 
-    console.log('check this', statuses);
-
     return callback({
       success: true,
       message: statuses,
@@ -118,7 +112,6 @@ export function registerHoneytokenEventHandlers() {
     console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] status of honeytoken text!');
 
     if (!payload) {
-      console.log('payload is required');
       return callback({
         status: 'failed',
       });
@@ -149,7 +142,6 @@ export function registerHoneytokenEventHandlers() {
     console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] starting honeytoken text!');
 
     if (!payload) {
-      console.log('payload is required');
       return callback({
         status: 'failed',
       });
@@ -170,13 +162,11 @@ export function registerHoneytokenEventHandlers() {
       });
 
     if (token.isMonitoring()) {
-      console.log('yayyyyyyyyyyyyyy!');
       return callback({
         status: 'monitoring',
       });
     }
 
-    console.log('yayyyyyyyyyyyyyy!');
     token.startMonitor();
     return callback({
       status: 'monitoring',
@@ -187,7 +177,6 @@ export function registerHoneytokenEventHandlers() {
     console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] stopping honeytoken text!');
 
     if (!payload) {
-      console.log('payload is required');
       return callback({
         status: 'failed',
       });
@@ -218,7 +207,6 @@ export function registerHoneytokenEventHandlers() {
       });
 
     token.stopMonitor();
-    console.log('Monitoring stopped successfully');
     return callback({
       status: 'not monitoring',
     });
@@ -248,5 +236,19 @@ export function registerHoneytokenEventHandlers() {
     return callback({
       status: 'failed',
     });
+  });
+
+  Globals.socket.on('START_HONEYTOKEN_API', async (payload, callback) => {
+    const { group_id } = payload;
+
+    const api_token = Globals.api_honeytokens.find((token) => token.getGroupID() === group_id);
+
+    if (!api_token) {
+      return callback({
+        status: 'failed',
+      });
+    }
+
+    api_token.startMonitor();
   });
 }

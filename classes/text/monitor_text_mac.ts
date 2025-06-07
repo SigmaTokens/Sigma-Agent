@@ -29,8 +29,6 @@ export class Monitor_Text_Mac extends Monitor_Text {
     stdout.on('data', (chunk: string) => {
       const rawLog = chunk;
       for (const line of chunk.split('\n')) {
-        //console.log('[DEBUG fs_usage line] "', line, '"');
-
         const trimmed = line.trim();
         if (!trimmed) continue;
 
@@ -78,7 +76,6 @@ export class Monitor_Text_Mac extends Monitor_Text {
       log: JSON.stringify({ fs_usage: rawLog }),
     };
 
-    console.log('sigma:', postData);
     fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

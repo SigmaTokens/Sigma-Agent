@@ -19,14 +19,10 @@ export class Honeytoken_API extends Honeytoken {
     this.sub_application = express();
     this.sub_application.use(express.json());
 
-    console.log('\n------------test-----------\n');
-
     apis.forEach(({ method, route, response }: API_route) => {
       this.sub_application[method.toLowerCase()](route, (req: any, res: any) => {
         console.log(Constants.TEXT_YELLOW_COLOR, `got request at: ${method}   ${route}`);
         if (this.is_monitoring) {
-          console.log('bug here1');
-
           const logString = JSON.stringify({
             ips: req.ips || [],
             method: req.method,
@@ -43,7 +39,7 @@ export class Honeytoken_API extends Honeytoken {
             accessed_by: req.ip,
             log: logString,
           };
-          console.log('bug here2');
+
           fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
             method: 'POST',
             headers: {
@@ -53,7 +49,7 @@ export class Honeytoken_API extends Honeytoken {
           }).catch((error) => {
             console.error('Error posting alert:', error);
           });
-          console.log('bug here3');
+
           res.status(200).json(response);
         } else {
           res.status(500).json({});
@@ -78,10 +74,10 @@ export class Honeytoken_API extends Honeytoken {
   }
 
   startMonitor() {
-    this.is_monitoring = false;
+    this.is_monitoring = true;
   }
 
   stopMonitor() {
-    this.is_monitoring = true;
+    this.is_monitoring = false;
   }
 }
