@@ -80,4 +80,8 @@ export class Honeytoken_API extends Honeytoken {
   stopMonitor() {
     this.is_monitoring = false;
   }
+
+  isMonitoring(): boolean {
+    return this.is_monitoring;
+  }
 }

@@ -91,7 +91,7 @@ export function registerHoneytokenEventHandlers() {
     });
   });
 
-  Globals.socket.on('STATUSES_HONEYTOKEN_TEXT', async (callback) => {
+  Globals.socket.on('STATUSES_HONEYTOKENS_TEXT', async (callback) => {
     console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] statuses of honeytokens text!');
     const statuses: Record<string, boolean> = {};
 
@@ -100,6 +100,20 @@ export function registerHoneytokenEventHandlers() {
         // Use token_id as the key and isMonitoring() result as value
         statuses[token.token_id] = token.isMonitoring();
       }
+    }
+
+    return callback({
+      success: true,
+      message: statuses,
+    });
+  });
+
+  Globals.socket.on('STATUSES_HONEYTOKENS_API', async (callback) => {
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] statuses of honeytokens api!');
+    const statuses: Record<string, boolean> = {};
+
+    for (const token of Globals.api_honeytokens) {
+      statuses[token.group_id] = token.isMonitoring();
     }
 
     return callback({
