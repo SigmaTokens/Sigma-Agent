@@ -108,7 +108,6 @@ export function registerHoneytokenEventHandlers() {
   });
 
   Globals.socket.on('STATUSES_HONEYTOKENS_API', async (callback) => {
-    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] statuses of honeytokens api!');
     const statuses: Record<string, boolean> = {};
 
     for (const token of Globals.api_honeytokens) {
