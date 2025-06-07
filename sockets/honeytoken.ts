@@ -238,17 +238,9 @@ export function registerHoneytokenEventHandlers() {
     });
   });
 
-  Globals.socket.on('START_HONEYTOKEN_API', async (payload, callback) => {
-    const { group_id } = payload;
-
+  Globals.socket.on('START_HONEYTOKEN_API', (payload) => {
+    const group_id = payload;
     const api_token = Globals.api_honeytokens.find((token) => token.getGroupID() === group_id);
-
-    if (!api_token) {
-      return callback({
-        status: 'failed',
-      });
-    }
-
-    api_token.startMonitor();
+    api_token?.startMonitor();
   });
 }
