@@ -32,8 +32,13 @@ function main(): void {
 
   Globals.port = parseInt(process.env.PORT ? process.env.PORT : Constants.DEFAULT_AGENT_PORT);
 
-  send_initial_request_to_manager();
   initWebSocketConnection();
+
+  Globals.socket.emit('REGISTER_AGENT', {
+    id: process.env[Constants.AGENT_ID_VARIABLE],
+    name: process.env.AGENT_NAME,
+    user: process.env.USER_ID ? process.env.USER_ID : 1, // TODO: need to delete the tenary when the authentication is setup
+  });
 
   isAdmin().then((isAdmin) => {
     if (!isAdmin) {
@@ -83,28 +88,6 @@ function validate_environment_file(): boolean {
   } else {
     console.log(Constants.TEXT_RED_COLOR, 'Error: environment file .env not found');
     return false;
-  }
-}
-
-function send_initial_request_to_manager(): void {
-  const ips = getLocalIPv4s();
-  console.log(ips);
-  console.log(ips[0]);
-  try {
-    fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/agents/add`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: process.env[Constants.AGENT_ID_VARIABLE],
-        ip: ips[0],
-        name: process.env.AGENT_NAME,
-        port: Globals.port,
-      }),
-    }).then((res) => {
-      console.log(res);
-    });
-  } catch (err) {
-    console.log(err);
   }
 }
 
