@@ -20,14 +20,6 @@ export function registerGeneralEventHandlers() {
     console.log(Constants.TEXT_GREEN_COLOR, `[WebSocket] Received command: ${action}`, payload);
   });
 
-  Globals.socket.on('INIT_AGENT', (callback) => {
-    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] initiating agent!');
-    initHoneytokens();
-    callback({
-      status: 'initiated',
-    });
-  });
-
   Globals.socket.on('CLOSE_AGENT', (callback) => {
     console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] closing agent!');
     callback({

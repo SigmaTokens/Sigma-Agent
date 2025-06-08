@@ -24,5 +24,4 @@ export type Token = {
   response: string;
   notes: string;
   api_port: number;
-  user_id: number;
 };

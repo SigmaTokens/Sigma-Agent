@@ -120,7 +120,7 @@ export class Monitor_Text_Windows extends Monitor_Text {
                 };
 
                 //sending
-                Globals.socket.emit('alertUpdate', {
+                Globals.socket.emit('CREATE_ALERT', {
                   alert: {
                     token_id: this.token.token_id,
                     alert_epoch: accessDate.getTime(),
