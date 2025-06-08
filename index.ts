@@ -37,7 +37,7 @@ function main(): void {
   Globals.socket.emit('REGISTER_AGENT', {
     id: process.env[Constants.AGENT_ID_VARIABLE],
     name: process.env.AGENT_NAME,
-    user: process.env.USER_ID ? process.env.USER_ID : 1, // TODO: need to delete the tenary when the authentication is setup
+    user: process.env.USER_ID ? process.env.USER_ID : '', // TODO: need to delete the tenary when the authentication is setup
   });
 
   isAdmin().then((isAdmin) => {
