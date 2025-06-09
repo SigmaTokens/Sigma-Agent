@@ -112,39 +112,12 @@ export class Monitor_Text_Windows extends Monitor_Text {
                   return;
                 }
 
-                const postData = {
+                Globals.socket.emit('CREATE_ALERT', {
                   token_id: this.token.token_id,
                   alert_epoch: accessDate.getTime(),
                   accessed_by: subjectDomain + '/' + subjectAccount,
                   log: jsonData,
-                };
-
-                //sending
-                Globals.socket.emit('CREATE_ALERT', {
-                  alert: {
-                    token_id: this.token.token_id,
-                    alert_epoch: accessDate.getTime(),
-                    accessed_by: subjectDomain + '/' + subjectAccount,
-                  },
                 });
-                //
-
-                fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify(postData),
-                })
-                  .then((response) => {
-                    if (!response.ok) {
-                      throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                  })
-                  .catch((error) => {
-                    console.error('Error posting alert:', error);
-                  });
               }
             } else this.not_first_log = true;
           }

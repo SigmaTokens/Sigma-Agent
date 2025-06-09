@@ -1,8 +1,9 @@
+import express from 'express';
 import { HoneytokenType } from '../../utilities/typing.ts';
 import { Honeytoken } from '../abstract/Honeytoken.ts';
 import { API_route } from '../../utilities/typing.ts';
-import express from 'express';
 import { Constants } from '../../constants.ts';
+import { Globals } from '../../globals.ts';
 
 export class Honeytoken_API extends Honeytoken {
   api_port: number;
@@ -33,21 +34,11 @@ export class Honeytoken_API extends Honeytoken {
             query: req.query,
           });
 
-          const postData = {
+          Globals.socket.emit('CREATE_ALERT', {
             token_id: this.group_id,
             alert_epoch: new Date().getTime(),
             accessed_by: req.ip,
             log: logString,
-          };
-
-          fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(postData),
-          }).catch((error) => {
-            console.error('Error posting alert:', error);
           });
 
           res.status(200).json(response);

@@ -2,6 +2,7 @@ import { spawn, ChildProcess } from 'child_process';
 import { Constants } from '../../constants.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
 import { Monitor_Text } from './monitor_text.ts';
+import { Globals } from '../../globals.ts';
 import os from 'os';
 
 export class Monitor_Text_Linux extends Monitor_Text {
@@ -57,19 +58,13 @@ export class Monitor_Text_Linux extends Monitor_Text {
   }
 
   private sendAlert(accessDate: Date, user: string, event: string, rawLog: string) {
-    const postData = {
+    Globals.socket.emit('CREATE_ALERT', {
       token_id: this.token.token_id,
       alert_epoch: accessDate.getTime(),
       accessed_by: user,
       event: event,
-      log: JSON.stringify({ inotify: rawLog }),
-    };
-
-    fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(postData),
-    }).catch((err) => console.error('Error posting alert:', err));
+      log: JSON.stringify({ fs_usage: rawLog }),
+    });
   }
 
   async stop_monitor() {

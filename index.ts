@@ -93,9 +93,8 @@ function validate_environment_file(): boolean {
 
 function initWebSocketConnection() {
   const agentId = process.env[Constants.AGENT_ID_VARIABLE];
-  const managerHost = process.env.MANAGER_IP;
-  const managerPort = process.env.MANAGER_PORT;
-  const wsUrl = `ws://${managerHost}:${managerPort}`;
+  const managerHost = process.env.MANAGER_HOST;
+  const wsUrl = `ws://${managerHost}`;
 
   Globals.socket = io(wsUrl, {
     query: { agentId },
