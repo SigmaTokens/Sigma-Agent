@@ -3,6 +3,7 @@ import { stat, Stats } from 'fs';
 import { Constants } from '../../constants.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
 import { Monitor_Text } from './monitor_text.ts';
+import { Globals } from '../../globals.ts';
 import os from 'os';
 
 export class Monitor_Text_Mac extends Monitor_Text {
@@ -67,20 +68,14 @@ export class Monitor_Text_Mac extends Monitor_Text {
   }
 
   private sendAlert(accessDate: Date, user: string, pid: string, procName: string, rawLog: string) {
-    const postData = {
+    Globals.socket.emit('CREATE_ALERT', {
       token_id: this.token.token_id,
       alert_epoch: accessDate.getTime(),
       accessed_by: user,
       process: procName,
       pid: pid,
       log: JSON.stringify({ fs_usage: rawLog }),
-    };
-
-    fetch(`http://${process.env.MANAGER_IP}:${process.env.MANAGER_PORT}/api/alerts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(postData),
-    }).catch((err) => console.error('Error posting alert:', err));
+    });
   }
 
   async stop_monitor() {
