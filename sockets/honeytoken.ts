@@ -229,6 +229,14 @@ export function registerHoneytokenEventHandlers() {
 
     const { group_id, type, grade, expiration_date, api_port, apis } = payload;
 
+    const exists = Globals.api_honeytokens.find((token) => token.getGroupID() === group_id);
+
+    if (exists) {
+      return callback({
+        status: 'created',
+      });
+    }
+
     if (type === HoneytokenType.API) {
       const api_honeytoken: Honeytoken_API = await Honeytoken_API.create(
         group_id,
