@@ -1,5 +1,5 @@
 import { Monitor } from '../abstract/Monitor.ts';
-import { Constants } from '../../constants.ts';
+import { Constants } from '../../constants.js';
 import { isWindows, isMac } from '../../utilities/host.ts';
 import { Honeytoken_Text } from './honeytoken_text.ts';
 

@@ -1,7 +1,7 @@
 import { HoneytokenType } from '../../utilities/typing.ts';
 import { Honeytoken } from '../abstract/Honeytoken.ts';
 import { Monitor_Text } from './monitor_text.ts';
-import { Constants } from '../../constants.ts';
+import { Constants } from '../../constants.js';
 import fs from 'fs';
 import path from 'path';
 

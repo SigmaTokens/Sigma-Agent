@@ -7,7 +7,7 @@ import { Globals } from '../globals.ts';
 import { isFromManager } from '../utilities/auth.ts';
 import { HoneytokenType } from '../utilities/typing.ts';
 import { Honeytoken_API } from '../classes/api/honeytoken_api.ts';
-import { Constants } from '../constants.ts';
+import { Constants } from '../constants.js';
 
 export function serveHoneytoken() {
   const router = Router();

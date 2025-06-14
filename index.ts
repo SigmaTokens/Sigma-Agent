@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { Globals } from './globals.ts';
 import { isAdmin } from './utilities/auth.ts';
-import { Constants } from './constants.ts';
+import { Constants } from './constants.js';
 import { isWindows, windows_enable_auditing, isMac, isLinux } from './utilities/host.ts';
 import { serveHoneytoken } from './routes/honeytoken.ts';
 import { serveMonitor } from './routes/monitor.ts';

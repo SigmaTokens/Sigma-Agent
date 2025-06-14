@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { Globals } from '../globals.ts';
-import { Constants } from '../constants.ts';
+import { Constants } from '../constants.js';
 
 export function agentStatus() {
   const router = Router();

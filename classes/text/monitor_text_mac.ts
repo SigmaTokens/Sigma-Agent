@@ -1,6 +1,6 @@
 import { spawn, ChildProcess } from 'child_process';
 import { stat, Stats } from 'fs';
-import { Constants } from '../../constants.ts';
+import { Constants } from '../../constants.js';
 import { Honeytoken_Text } from './honeytoken_text.ts';
 import { Monitor_Text } from './monitor_text.ts';
 import { Globals } from '../../globals.ts';

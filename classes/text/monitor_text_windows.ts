@@ -1,5 +1,5 @@
 import { exec } from 'child_process';
-import { Constants } from '../../constants.ts';
+import { Constants } from '../../constants.js';
 import { Honeytoken_Text } from './honeytoken_text.ts';
 import { sleep } from '../../utilities/utilities.ts';
 import { Monitor_Text } from './monitor_text.ts';

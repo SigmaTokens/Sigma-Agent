@@ -1,7 +1,7 @@
 import { Globals } from '../globals.ts';
 import { Honeytoken_Text } from '../classes/text/honeytoken_text.ts';
 import { networkInterfaces } from 'os';
-import { Constants } from '../constants.ts';
+import { Constants } from '../constants.js';
 import { API_route, HoneytokenType, Token } from './typing.ts';
 import { Honeytoken_API } from '../classes/api/honeytoken_api.ts';
 

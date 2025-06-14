@@ -2,7 +2,7 @@ import { Globals } from '../globals.ts';
 import { Router } from 'express';
 import { isFromManager } from '../utilities/auth.ts';
 import { Honeytoken_Text } from '../classes/text/honeytoken_text.ts';
-import { Constants } from '../constants.ts';
+import { Constants } from '../constants.js';
 
 export function serveMonitor() {
   const router = Router();

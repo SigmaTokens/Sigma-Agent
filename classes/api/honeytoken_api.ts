@@ -2,7 +2,7 @@ import express from 'express';
 import { HoneytokenType } from '../../utilities/typing.ts';
 import { Honeytoken } from '../abstract/Honeytoken.ts';
 import { API_route } from '../../utilities/typing.ts';
-import { Constants } from '../../constants.ts';
+import { Constants } from '../../constants.js';
 import { Globals } from '../../globals.ts';
 
 export class Honeytoken_API extends Honeytoken {

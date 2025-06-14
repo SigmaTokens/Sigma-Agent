@@ -2,7 +2,7 @@ import { fileURLToPath } from 'url';
 import { execSync, exec } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { Constants } from './constants';
+import { Constants } from './constants.js';
 main();
 
 function main() {
