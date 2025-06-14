@@ -13,7 +13,7 @@ import { serveHoneytoken } from './routes/honeytoken.ts';
 import { serveMonitor } from './routes/monitor.ts';
 import { serveGeneral } from './routes/general.ts';
 import { agentStatus } from './routes/status.ts';
-import { getLocalIPv4s, initHoneytokens } from './utilities/init.ts';
+import { initHoneytokens } from './utilities/init.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { registerGeneralEventHandlers } from './sockets/general.ts';
 import { registerHoneytokenEventHandlers } from './sockets/honeytoken.ts';
@@ -42,7 +42,7 @@ function main(): void {
 
   isAdmin().then((isAdmin) => {
     if (!isAdmin) {
-      console.error(Constants.TEXT_RED_COLOR, 'Please run as administrator');
+      console.error(Constants.TEXT_RED_COLOR, 'Please run as administrator', Constants.TEXT_DEFAULT_COLOR);
       return;
     }
 
@@ -56,11 +56,20 @@ function main(): void {
         serveMonitor();
 
         Globals.app.listen(Globals.port, () => {
-          console.log(`[+] Server running on port ${Globals.port}`);
+          console.log(
+            Constants.TEXT_MAGENTA_COLOR,
+            `[+] Server running on port ${Globals.port}`,
+            Constants.TEXT_DEFAULT_COLOR,
+          );
         });
       })
       .catch((error) => {
-        console.error('[-] Failed to initialize server:', error);
+        console.error(
+          Constants.TEXT_RED_COLOR,
+          '[-] Failed to initialize server:',
+          error,
+          Constants.TEXT_DEFAULT_COLOR,
+        );
         process.exit(1);
       });
   });
@@ -83,10 +92,14 @@ function validate_environment_file(): boolean {
       fs.appendFileSync(env_path, `${Constants.AGENT_ID_VARIABLE}=${new_uuid}`, { encoding: 'utf-8' });
       process.env[Constants.AGENT_ID_VARIABLE] = new_uuid;
     }
-    console.log(Constants.TEXT_YELLOW_COLOR, `Your uuid is: ${process.env[Constants.AGENT_ID_VARIABLE]}`);
+    console.log(
+      Constants.TEXT_YELLOW_COLOR,
+      `Your uuid is: ${process.env[Constants.AGENT_ID_VARIABLE]}`,
+      Constants.TEXT_DEFAULT_COLOR,
+    );
     return true;
   } else {
-    console.log(Constants.TEXT_RED_COLOR, 'Error: environment file .env not found');
+    console.log(Constants.TEXT_RED_COLOR, 'Error: environment file .env not found', Constants.TEXT_DEFAULT_COLOR);
     return false;
   }
 }

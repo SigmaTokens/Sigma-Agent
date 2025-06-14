@@ -7,13 +7,12 @@ import { Globals } from '../globals.ts';
 import { isFromManager } from '../utilities/auth.ts';
 import { HoneytokenType } from '../utilities/typing.ts';
 import { Honeytoken_API } from '../classes/api/honeytoken_api.ts';
+import { Constants } from '../constants.ts';
 
 export function serveHoneytoken() {
   const router = Router();
 
   router.post('/honeytoken/api/add', async (req, res) => {
-    console.log(req.body);
-
     const { group_id, type, grade, expiration_date, api_port, apis } = req.body;
 
     if (type === HoneytokenType.API) {
@@ -85,7 +84,11 @@ export function serveHoneytoken() {
     try {
       const origin = req.get('origin') || '';
       if (!isFromManager(origin)) {
-        console.warn(`Unauthorized removal attempt from ${origin}`);
+        console.warn(
+          Constants.TEXT_RED_COLOR,
+          `Unauthorized removal attempt from ${origin}`,
+          Constants.TEXT_DEFAULT_COLOR,
+        );
         res.status(403).json({ failure: 'Access denied' });
         return;
       }
@@ -110,15 +113,24 @@ export function serveHoneytoken() {
         tokenToRemove.stopMonitor();
 
         // Remove the physical file if it exists
-        console.log('the honeytoken to remove type: ', tokenToRemove.getType());
+        console.log(
+          Constants.TEXT_GREEN_COLOR,
+          'the honeytoken to remove type: ',
+          tokenToRemove.getType(),
+          Constants.TEXT_DEFAULT_COLOR,
+        );
 
         if (tokenToRemove.getType() === HoneytokenType.Text) {
           const fullPath = path.join(tokenToRemove.getLocation(), tokenToRemove.getFileName());
 
-          console.log(`[!] Deleting honeytoken file: ${fullPath}`);
+          console.log(
+            Constants.TEXT_RED_COLOR,
+            `[!] Deleting honeytoken file: ${fullPath}`,
+            Constants.TEXT_DEFAULT_COLOR,
+          );
           if (fs.existsSync(fullPath)) {
             fs.rmSync(fullPath);
-            console.log(`[!] Deleted!`);
+            console.log(Constants.TEXT_RED_COLOR, `[!] Deleted!`, Constants.TEXT_DEFAULT_COLOR);
           }
         }
 
@@ -128,12 +140,12 @@ export function serveHoneytoken() {
         res.status(200).json({ success: 'Honeytoken removed successfully' });
         return;
       } catch (error) {
-        console.error(`Error during token removal: ${error}`);
+        console.error(Constants.TEXT_RED_COLOR, `Error during token removal: ${error}`, Constants.TEXT_DEFAULT_COLOR);
         res.status(500).json({ failure: 'Error during token removal' });
         return;
       }
     } catch (error) {
-      console.error('Honeytoken removal error:', error);
+      console.error(Constants.TEXT_RED_COLOR, 'Honeytoken removal error:', error, Constants.TEXT_DEFAULT_COLOR);
       res.status(500).json({
         failure: error instanceof Error ? error.message : 'Internal server error',
       });
@@ -163,7 +175,7 @@ export function serveHoneytoken() {
         status: isMonitoring ? 'monitoring' : 'not monitoring',
       });
     } catch (error: any) {
-      console.error('Status check error:', error);
+      console.error(Constants.TEXT_RED_COLOR, 'Status check error:', error, Constants.TEXT_DEFAULT_COLOR);
       res.status(500).json({ failure: 'Internal server error' });
     }
   });
@@ -188,7 +200,7 @@ export function serveHoneytoken() {
       res.status(200).json(statuses);
       return;
     } catch (error: any) {
-      console.error('Status check error:', error);
+      console.error(Constants.TEXT_RED_COLOR, 'Status check error:', error, Constants.TEXT_DEFAULT_COLOR);
       res.status(500).json({ failure: 'Internal server error' });
       return;
     }
@@ -200,7 +212,11 @@ export function serveHoneytoken() {
 
       const { token_id } = req.body;
       if (!isFromManager(origin)) {
-        console.warn(`Unauthorized monitoring attempt from ${origin}`);
+        console.warn(
+          Constants.TEXT_RED_COLOR,
+          `Unauthorized monitoring attempt from ${origin}`,
+          Constants.TEXT_DEFAULT_COLOR,
+        );
         res.status(403).json({ failure: 'Access denied' });
         return;
       }
@@ -230,7 +246,7 @@ export function serveHoneytoken() {
       });
       return;
     } catch (error) {
-      console.error('Monitor startup error:', error);
+      console.error(Constants.TEXT_RED_COLOR, 'Monitor startup error:', error, Constants.TEXT_DEFAULT_COLOR);
       res.status(500).json({
         failure: error instanceof Error ? error.message : 'Internal server error',
       });
@@ -244,7 +260,11 @@ export function serveHoneytoken() {
       const { token_id } = req.body;
 
       if (!isFromManager(origin)) {
-        console.warn(`Unauthorized monitoring attempt from ${origin}`);
+        console.warn(
+          Constants.TEXT_RED_COLOR,
+          `Unauthorized monitoring attempt from ${origin}`,
+          Constants.TEXT_DEFAULT_COLOR,
+        );
         res.status(403).json({ failure: 'Access denied' });
         return;
       }
@@ -279,7 +299,7 @@ export function serveHoneytoken() {
       });
       return;
     } catch (error) {
-      console.error('Stop monitoring error:', error);
+      console.error(Constants.TEXT_RED_COLOR, 'Stop monitoring error:', error, Constants.TEXT_DEFAULT_COLOR);
       res.status(500).json({
         failure: error instanceof Error ? error.message : 'Internal server error',
       });

@@ -38,9 +38,9 @@ export function registerMonitorEventHandlers() {
   });
 
   Globals.socket.on('STOP_AGENT', (callback) => {
-    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] stopping agent!');
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] stopping agent!', Constants.TEXT_DEFAULT_COLOR);
     if (Globals.text_honeytokens.length === 0 && Globals.api_honeytokens.length === 0) {
-      console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] No honeytokens to stop');
+      console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] No honeytokens to stop', Constants.TEXT_DEFAULT_COLOR);
       return callback({
         status: 'stopped',
       });
@@ -80,9 +80,9 @@ export function registerMonitorEventHandlers() {
   });
 
   Globals.socket.on('START_AGENT', (callback) => {
-    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] starting agent!');
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] starting agent!', Constants.TEXT_DEFAULT_COLOR);
     if (Globals.text_honeytokens.length === 0 && Globals.api_honeytokens.length === 0) {
-      console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] No honeytokens to monitor');
+      console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] No honeytokens to monitor', Constants.TEXT_DEFAULT_COLOR);
       return callback({
         status: 'started',
       });

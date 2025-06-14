@@ -2,12 +2,12 @@ import { fileURLToPath } from 'url';
 import { execSync, exec } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-
+import { Constants } from './constants';
 main();
 
 function main() {
   if (!isAdmin()) {
-    console.error('[-] Error: must run as admin!');
+    console.error(Constants.TEXT_RED_COLOR, '[-] Error: must run as admin!', Constants.TEXT_DEFAULT_COLOR);
     process.exit(-1);
   }
   const mode = get_mode();
@@ -38,7 +38,10 @@ function get_mode() {
     ? 'dev'
     : mode.includes('prod')
       ? 'prod'
-      : (console.error('[-] Please specify a mode to run the project: dev or prod'), process.exit(-1));
+      : (Constants.TEXT_RED_COLOR,
+        console.error('[-] Please specify a mode to run the project: dev or prod'),
+        process.exit(-1),
+        Constants.TEXT_DEFAULT_COLOR);
 }
 
 function get_root_dir() {
@@ -69,12 +72,16 @@ function is_extension_updated(extension) {
 
 function install_extension(extension) {
   try {
-    console.log(`[+] Checking extension: ${extension}`);
+    console.log(Constants.TEXT_GREEN_COLOR, `[+] Checking extension: ${extension}`, Constants.TEXT_DEFAULT_COLOR);
 
     if (is_extension_installed(extension)) {
       is_extension_updated(extension).then((updateCheck) => {
         if (updateCheck) {
-          console.log(`[+] ${extension} update available, upgrading...`);
+          console.log(
+            Constants.TEXT_GREEN_COLOR,
+            `[+] ${extension} update available, upgrading...`,
+            Constants.TEXT_DEFAULT_COLOR,
+          );
 
           if (process.platform === 'linux') {
             execSync(`sudo -u $SUDO_USER code --install-extension ${extension} --force`);
@@ -83,11 +90,11 @@ function install_extension(extension) {
             execSync(`code --install-extension ${extension} --force`);
           }
         } else {
-          console.log(`[+] ${extension} is up-to-date`);
+          console.log(Constants.TEXT_GREEN_COLOR, `[+] ${extension} is up-to-date`, Constants.TEXT_DEFAULT_COLOR);
         }
       });
     } else {
-      console.log(`[+] Installing ${extension}...`);
+      console.log(Constants.TEXT_GREEN_COLOR, `[+] Installing ${extension}...`, Constants.TEXT_DEFAULT_COLOR);
       if (process.platform === 'linux') {
         execSync(`sudo -u $SUDO_USER code --install-extension ${extension} --force`);
       } else {
@@ -96,7 +103,7 @@ function install_extension(extension) {
       }
     }
   } catch (error) {
-    console.error(`[-] Failed: ${error.message}`);
+    console.error(Constants.TEXT_RED_COLOR, `[-] Failed: ${error.message}`, Constants.TEXT_DEFAULT_COLOR);
     process.exit(1);
   }
 }
@@ -104,16 +111,16 @@ function install_extension(extension) {
 function install_extensions() {
   const prettier = 'esbenp.prettier-vscode';
   install_extension(prettier);
-  console.log('[+] Extension check complete!');
+  console.log(Constants.TEXT_GREEN_COLOR, '[+] Extension check complete!', Constants.TEXT_DEFAULT_COLOR);
 }
 
 function create_file(filePath, content) {
   if (!fs.existsSync(filePath)) {
     fs.writeFileSync(filePath, content, 'utf8');
-    console.log(`[+] Created: ${filePath}`);
+    console.log(Constants.TEXT_GREEN_COLOR, `[+] Created: ${filePath}`, Constants.TEXT_DEFAULT_COLOR);
   } else {
     fs.writeFileSync(filePath, content, 'utf8');
-    console.log(`[+] Updated: ${filePath}`);
+    console.log(Constants.TEXT_GREEN_COLOR, `[+] Updated: ${filePath}`, Constants.TEXT_DEFAULT_COLOR);
   }
 }
 
@@ -153,16 +160,16 @@ function setup_vscode_settings(rootDir) {
 
 function install_deps() {
   try {
-    console.log('[+] Updating deps for agent~~~');
+    console.log(Constants.TEXT_GREEN_COLOR, '[+] Updating deps for agent~~~', Constants.TEXT_DEFAULT_COLOR);
     if (process.platform !== 'linux') {
       execSync('npm install', { stdio: 'inherit' });
     } else if (process.platform === 'linux') {
       install_deps_linux();
     }
 
-    console.log('[+] Deps update complete!');
+    console.log(Constants.TEXT_GREEN_COLOR, '[+] Deps update complete!', Constants.TEXT_DEFAULT_COLOR);
   } catch (error) {
-    console.error('[-] Failed to update deps:', error.message);
+    console.error(Constants.TEXT_RED_COLOR, '[-] Failed to update deps:', error.message, Constants.TEXT_DEFAULT_COLOR);
     process.exit(-1);
   }
 }
@@ -189,20 +196,24 @@ function install_dep_linux(dep_name) {
   });
 
   if (!pkg) {
-    console.error('[-] No supported package manager found. Install auditd and inotify-tools manually.');
+    console.error(
+      Constants.TEXT_RED_COLOR,
+      '[-] No supported package manager found. Install auditd and inotify-tools manually.',
+      Constants.TEXT_DEFAULT_COLOR,
+    );
     process.exit(1);
   }
 
-  console.log(`[+] Installing deps via ${pkg.cmd}…`);
+  console.log(Constants.TEXT_GREEN_COLOR, `[+] Installing deps via ${pkg.cmd}…`, Constants.TEXT_DEFAULT_COLOR);
   execSync(`sudo ${pkg.install}`, { stdio: 'inherit' });
 }
 
 function run_sigmatokens(mode) {
   try {
-    console.log(`[+] Starting in ${mode} mode~~~`);
+    console.log(Constants.TEXT_GREEN_COLOR, `[+] Starting in ${mode} mode~~~`, Constants.TEXT_DEFAULT_COLOR);
     execSync(`npm run ${mode}`, { stdio: 'inherit' });
   } catch (error) {
-    console.error('[-] Failed to start:', error.message);
+    console.error(Constants.TEXT_RED_COLOR, '[-] Failed to start:', error.message, Constants.TEXT_DEFAULT_COLOR);
     process.exit(-1);
   }
 }

@@ -22,7 +22,7 @@ export class Honeytoken_API extends Honeytoken {
 
     apis.forEach(({ method, route, response }: API_route) => {
       this.sub_application[method.toLowerCase()](route, (req: any, res: any) => {
-        console.log(Constants.TEXT_YELLOW_COLOR, `got request at: ${method}   ${route}`);
+        console.log(Constants.TEXT_YELLOW_COLOR, `got request at: ${method}   ${route}`, Constants.TEXT_DEFAULT_COLOR);
         if (this.is_monitoring) {
           const logString = JSON.stringify({
             ips: req.ips || [],
@@ -49,7 +49,11 @@ export class Honeytoken_API extends Honeytoken {
     });
 
     this.sub_application.listen(api_port, () => {
-      console.log(`API sub application listening on port ${api_port}`);
+      console.log(
+        Constants.TEXT_CYAN_COLOR,
+        `API sub application listening on port ${api_port}`,
+        Constants.TEXT_DEFAULT_COLOR,
+      );
     });
   }
 

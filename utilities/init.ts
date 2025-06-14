@@ -62,7 +62,11 @@ export async function initHoneytokens() {
 
               Globals.text_honeytokens.push(text_honeytoken);
             } catch (err) {
-              console.log(Constants.TEXT_RED_COLOR, `Error creating token: ${tokenData.token_id}`);
+              console.log(
+                Constants.TEXT_RED_COLOR,
+                `Error creating token: ${tokenData.token_id}`,
+                Constants.TEXT_DEFAULT_COLOR,
+              );
             }
           default:
         }

@@ -40,7 +40,7 @@ export class Monitor_Text_Mac extends Monitor_Text {
 
         // Fresh stat to check atime
         stat(this.file, (err, stats: Stats) => {
-          if (err) return console.error('stat error:', err);
+          if (err) return console.error(Constants.TEXT_RED_COLOR, 'stat error:', err, Constants.TEXT_DEFAULT_COLOR);
           if (stats.atimeMs > this.last_access_time.getTime()) {
             this.handleAccess(stats, pid, procName, rawLog);
           }
@@ -52,10 +52,14 @@ export class Monitor_Text_Mac extends Monitor_Text {
     stderr.on('data', (data) => {
       const msg = data.toString();
       if (msg.includes('ktrace_start: Resource busy')) return;
-      console.error('fs_usage error:', msg);
+      console.error(Constants.TEXT_RED_COLOR, 'fs_usage error:', msg, Constants.TEXT_DEFAULT_COLOR);
     });
 
-    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via filtered fs_usage`);
+    console.log(
+      Constants.TEXT_GREEN_COLOR,
+      `Started monitoring ${this.file} via filtered fs_usage`,
+      Constants.TEXT_DEFAULT_COLOR,
+    );
   }
 
   private handleAccess(stat: Stats, pid: string, procName: string, rawLog: string) {
@@ -85,6 +89,6 @@ export class Monitor_Text_Mac extends Monitor_Text {
       await new Promise<void>((resolve) => this.fsUsageProcess!.once('exit', () => resolve()));
       this.fsUsageProcess = undefined;
     }
-    console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`);
+    console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`, Constants.TEXT_DEFAULT_COLOR);
   }
 }

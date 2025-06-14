@@ -2,6 +2,7 @@ import { Globals } from '../globals.ts';
 import { Router } from 'express';
 import { isFromManager } from '../utilities/auth.ts';
 import { Honeytoken_Text } from '../classes/text/honeytoken_text.ts';
+import { Constants } from '../constants.ts';
 
 export function serveMonitor() {
   const router = Router();
@@ -26,7 +27,7 @@ export function serveMonitor() {
         status: isMonitoring ? 'monitoring' : 'not monitoring',
       });
     } catch (error: any) {
-      console.error('Status check error:', error);
+      console.error(Constants.TEXT_RED_COLOR, 'Status check error:', error, Constants.TEXT_DEFAULT_COLOR);
       res.status(500).json({ failure: 'Internal server error' });
     }
   });
@@ -36,7 +37,11 @@ export function serveMonitor() {
       const origin = req.get('origin') || '';
 
       if (!isFromManager(origin)) {
-        console.warn(`Unauthorized monitoring attempt from ${origin}`);
+        console.warn(
+          Constants.TEXT_RED_COLOR,
+          `Unauthorized monitoring attempt from ${origin}`,
+          Constants.TEXT_DEFAULT_COLOR,
+        );
         res.status(403).json({ failure: 'Access denied' });
         return;
       }
@@ -55,7 +60,12 @@ export function serveMonitor() {
             }
             return { skipped: true };
           } catch (error) {
-            console.error(`Failed to start monitoring for token:`, error);
+            console.error(
+              Constants.TEXT_RED_COLOR,
+              `Failed to start monitoring for token:`,
+              error,
+              Constants.TEXT_DEFAULT_COLOR,
+            );
             return { error: true };
           }
         }),
@@ -96,7 +106,7 @@ export function serveMonitor() {
       });
       return;
     } catch (error) {
-      console.error('Monitor startup error:', error);
+      console.error(Constants.TEXT_RED_COLOR, 'Monitor startup error:', error, Constants.TEXT_DEFAULT_COLOR);
       res.status(500).json({
         failure: 'Internal server error',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -127,7 +137,7 @@ export function serveMonitor() {
         success: anyStopped ? 'Monitoring stopped for all honeytokens' : 'No monitoring was active',
       });
     } catch (error: any) {
-      console.error('Stop monitoring error:', error);
+      console.error(Constants.TEXT_RED_COLOR, 'Stop monitoring error:', error, Constants.TEXT_DEFAULT_COLOR);
       res.status(500).json({ failure: 'Internal server error' });
     }
   });

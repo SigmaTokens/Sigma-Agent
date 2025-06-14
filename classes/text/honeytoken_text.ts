@@ -1,6 +1,7 @@
 import { HoneytokenType } from '../../utilities/typing.ts';
 import { Honeytoken } from '../abstract/Honeytoken.ts';
 import { Monitor_Text } from './monitor_text.ts';
+import { Constants } from '../../constants.ts';
 import fs from 'fs';
 import path from 'path';
 
@@ -57,9 +58,9 @@ export class Honeytoken_Text extends Honeytoken {
 
       const fullPath = path.join(this.location, this.file_name);
       fs.writeFileSync(fullPath, data, { encoding: 'utf8' });
-      console.log(`File created at: ${fullPath}`);
+      console.log(Constants.TEXT_GREEN_COLOR, `File created at: ${fullPath}`, Constants.TEXT_DEFAULT_COLOR);
     } catch (error) {
-      console.error(`Error creating file: ${error}`);
+      console.error(Constants.TEXT_RED_COLOR, `Error creating file: ${error}`, Constants.TEXT_DEFAULT_COLOR);
       throw error;
     }
   }

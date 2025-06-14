@@ -51,10 +51,14 @@ export class Monitor_Text_Linux extends Monitor_Text {
       if (msg.includes('Setting up watches') || msg.includes('Watches established')) {
         return;
       }
-      console.error('inotifywait error:', msg);
+      console.error(Constants.TEXT_RED_COLOR, 'inotifywait error:', msg, Constants.TEXT_DEFAULT_COLOR);
     });
 
-    console.log(Constants.TEXT_GREEN_COLOR, `Started monitoring ${this.file} via inotifywait`);
+    console.log(
+      Constants.TEXT_GREEN_COLOR,
+      `Started monitoring ${this.file} via inotifywait`,
+      Constants.TEXT_DEFAULT_COLOR,
+    );
   }
 
   private sendAlert(accessDate: Date, user: string, event: string, rawLog: string) {
@@ -74,6 +78,6 @@ export class Monitor_Text_Linux extends Monitor_Text {
       await new Promise<void>((resolve) => this.watcherProcess!.once('exit', () => resolve()));
       this.watcherProcess = undefined;
     }
-    console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`);
+    console.log(Constants.TEXT_GREEN_COLOR, `Stopped monitoring ${this.file}`, Constants.TEXT_DEFAULT_COLOR);
   }
 }

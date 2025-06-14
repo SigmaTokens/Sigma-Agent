@@ -8,7 +8,7 @@ import * as fs from 'fs';
 
 export function registerHoneytokenEventHandlers() {
   Globals.socket.on('CREATE_HONEYTOKEN_TEXT', async (payload, callback) => {
-    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] creating honeytoken text!');
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] creating honeytoken text!', Constants.TEXT_DEFAULT_COLOR);
     const { token_id, group_id, type, file_name, location, grade, expiration_date, notes, data } = payload;
 
     let received_token = null;
@@ -47,7 +47,7 @@ export function registerHoneytokenEventHandlers() {
   });
 
   Globals.socket.on('DELETE_HONEYTOKEN_TEXT', async (payload, callback) => {
-    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] deleting honeytoken text!');
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] deleting honeytoken text!', Constants.TEXT_DEFAULT_COLOR);
 
     if (!payload) {
       return callback({
@@ -72,15 +72,20 @@ export function registerHoneytokenEventHandlers() {
     const tokenToRemove = Globals.text_honeytokens[tokenIndex] as Honeytoken_Text;
     tokenToRemove.stopMonitor();
 
-    console.log('the honeytoken to remove type: ', tokenToRemove.getType());
+    console.log(
+      Constants.TEXT_GREEN_COLOR,
+      'the honeytoken to remove type: ',
+      tokenToRemove.getType(),
+      Constants.TEXT_DEFAULT_COLOR,
+    );
 
     if (tokenToRemove.getType() === HoneytokenType.Text) {
       const fullPath = path.join(tokenToRemove.getLocation(), tokenToRemove.getFileName());
 
-      console.log(`[!] Deleting honeytoken file: ${fullPath}`);
+      console.log(Constants.TEXT_RED_COLOR, `[!] Deleting honeytoken file: ${fullPath}`, Constants.TEXT_DEFAULT_COLOR);
       if (fs.existsSync(fullPath)) {
         fs.rmSync(fullPath);
-        console.log(`[!] Deleted!`);
+        console.log(Constants.TEXT_RED_COLOR, `[!] Deleted!`, Constants.TEXT_DEFAULT_COLOR);
       }
     }
 
@@ -121,7 +126,7 @@ export function registerHoneytokenEventHandlers() {
   });
 
   Globals.socket.on('STATUS_HONEYTOKEN_TEXT', async (payload, callback) => {
-    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] status of honeytoken text!');
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] status of honeytoken text!', Constants.TEXT_DEFAULT_COLOR);
 
     if (!payload) {
       return callback({
@@ -151,7 +156,7 @@ export function registerHoneytokenEventHandlers() {
   });
 
   Globals.socket.on('START_HONEYTOKEN_TEXT', async (payload, callback) => {
-    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] starting honeytoken text!');
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] starting honeytoken text!', Constants.TEXT_DEFAULT_COLOR);
 
     if (!payload) {
       return callback({
@@ -186,7 +191,7 @@ export function registerHoneytokenEventHandlers() {
   });
 
   Globals.socket.on('STOP_HONEYTOKEN_TEXT', async (payload, callback) => {
-    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] stopping honeytoken text!');
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] stopping honeytoken text!', Constants.TEXT_DEFAULT_COLOR);
 
     if (!payload) {
       return callback({
@@ -225,7 +230,7 @@ export function registerHoneytokenEventHandlers() {
   });
 
   Globals.socket.on('CREATE_HONEYTOKEN_API', async (payload, callback) => {
-    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] creating honeytoken api!');
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] creating honeytoken api!', Constants.TEXT_DEFAULT_COLOR);
 
     const { group_id, type, grade, expiration_date, api_port, apis } = payload;
 
@@ -276,6 +281,5 @@ export function registerHoneytokenEventHandlers() {
     if (index !== -1) {
       Globals.api_honeytokens.splice(index, 1);
     }
-    console.log('test: ', Globals.api_honeytokens);
   });
 }
