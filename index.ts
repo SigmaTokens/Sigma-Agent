@@ -89,7 +89,7 @@ function validate_environment_file(): boolean {
     dotenv.config();
     if (!process.env[Constants.AGENT_ID_VARIABLE]) {
       const new_uuid = uuidv4();
-      fs.appendFileSync(env_path, `${Constants.AGENT_ID_VARIABLE}=${new_uuid}`, { encoding: 'utf-8' });
+      fs.appendFileSync(env_path, `\n${Constants.AGENT_ID_VARIABLE}=${new_uuid}`, { encoding: 'utf-8' });
       process.env[Constants.AGENT_ID_VARIABLE] = new_uuid;
     }
     console.log(
