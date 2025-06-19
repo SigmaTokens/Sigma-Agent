@@ -6,7 +6,15 @@ import { API_route, HoneytokenType, Token } from './typing.ts';
 import { Honeytoken_API } from '../classes/api/honeytoken_api.ts';
 
 export async function initHoneytokens() {
-  const results = await Globals.socket.emitWithAck('GET_HONEYTOKENS', process.env[Constants.AGENT_ID_VARIABLE]);
+  let results: any;
+  try {
+    results = await Globals.socket
+      .timeout(2000)
+      .emitWithAck('GET_HONEYTOKENS', process.env[Constants.AGENT_ID_VARIABLE]);
+  } catch {
+    console.log(Constants.TEXT_RED_COLOR, 'Error fetching tokens', Constants.TEXT_DEFAULT_COLOR);
+    return;
+  }
   const tokens: Token[] = results.tokens;
 
   const groups = tokens.reduce(

@@ -263,23 +263,49 @@ export function registerHoneytokenEventHandlers() {
     });
   });
 
-  Globals.socket.on('START_HONEYTOKEN_API', (payload) => {
+  Globals.socket.on('START_HONEYTOKEN_API', async (payload, callback) => {
     const group_id = payload;
     const api_token = Globals.api_honeytokens.find((token) => token.getGroupID() === group_id);
-    api_token?.startMonitor();
+
+    if (api_token) {
+      api_token?.startMonitor();
+      return callback({
+        status: 'monitoring',
+      });
+    }
+
+    return callback({
+      status: 'failed',
+    });
   });
 
-  Globals.socket.on('STOP_HONEYTOKEN_API', (payload) => {
+  Globals.socket.on('STOP_HONEYTOKEN_API', async (payload, callback) => {
     const group_id = payload;
     const api_token = Globals.api_honeytokens.find((token) => token.getGroupID() === group_id);
-    api_token?.stopMonitor();
+    if (api_token) {
+      api_token?.stopMonitor();
+      return callback({
+        status: 'not monitoring',
+      });
+    }
+
+    return callback({
+      status: 'failed',
+    });
   });
 
-  Globals.socket.on('DELETE_HONEYTOKEN_API', (payload) => {
+  Globals.socket.on('DELETE_HONEYTOKEN_API', async (payload, callback) => {
     const group_id = payload;
     const index = Globals.api_honeytokens.findIndex((t) => t.getGroupID() === group_id);
     if (index !== -1) {
       Globals.api_honeytokens.splice(index, 1);
+      return callback({
+        status: 'deleted',
+      });
     }
+
+    return callback({
+      status: 'failed',
+    });
   });
 }
