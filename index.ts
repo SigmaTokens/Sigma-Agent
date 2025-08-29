@@ -106,23 +106,24 @@ function validate_environment_file(): boolean {
 
 function initWebSocketConnection() {
   const agentId = process.env[Constants.AGENT_ID_VARIABLE];
-  const raw = process.env.MANAGER_HOST!; // e.g. "https://sigmatokens-...azurewebsites.net"
+  const raw = process.env.MANAGER_HOST!;
 
-  // Ensure it's an absolute https URL (add https:// if your env var is just a host)
   const ioUrl = /^https?:\/\//i.test(raw) ? raw.replace(/\/+$/, '') : `https://${raw}`;
 
   Globals.socket = io(ioUrl, {
-    // If your server expects it as a query param, keep this:
     query: { agentId },
-    // Tip: start without forcing 'websocket' to allow automatic fallback
-    // transports: ['websocket'],
     reconnection: true,
   });
 
-  // (Optional) helpful diagnostics:
-  Globals.socket.on('connect', () => console.log('Connected to', ioUrl));
-  Globals.socket.on('connect_error', (err) => console.error('Socket connect_error:', err));
-  Globals.socket.on('error', (err) => console.error('Socket error:', err));
+  Globals.socket.on('connect', () =>
+    console.log(Constants.TEXT_GREEN_COLOR, '[WebSocket] Connected to', ioUrl, Constants.TEXT_DEFAULT_COLOR),
+  );
+  Globals.socket.on('connect_error', (err) =>
+    console.error(Constants.TEXT_RED_COLOR, '[WebSocket] Socket connect_error:', err, Constants.TEXT_DEFAULT_COLOR),
+  );
+  Globals.socket.on('error', (err) =>
+    console.error(Constants.TEXT_RED_COLOR, '[WebSocket] Socket error:', err, Constants.TEXT_DEFAULT_COLOR),
+  );
 
   registerGeneralEventHandlers();
   registerHoneytokenEventHandlers();
