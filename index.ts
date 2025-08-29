@@ -106,14 +106,23 @@ function validate_environment_file(): boolean {
 
 function initWebSocketConnection() {
   const agentId = process.env[Constants.AGENT_ID_VARIABLE];
-  const managerHost = process.env.MANAGER_HOST;
-  const wsUrl = `ws://${managerHost}`;
+  const raw = process.env.MANAGER_HOST!; // e.g. "https://sigmatokens-...azurewebsites.net"
 
-  Globals.socket = io(wsUrl, {
+  // Ensure it's an absolute https URL (add https:// if your env var is just a host)
+  const ioUrl = /^https?:\/\//i.test(raw) ? raw.replace(/\/+$/, '') : `https://${raw}`;
+
+  Globals.socket = io(ioUrl, {
+    // If your server expects it as a query param, keep this:
     query: { agentId },
-    transports: ['websocket'],
+    // Tip: start without forcing 'websocket' to allow automatic fallback
+    // transports: ['websocket'],
     reconnection: true,
   });
+
+  // (Optional) helpful diagnostics:
+  Globals.socket.on('connect', () => console.log('Connected to', ioUrl));
+  Globals.socket.on('connect_error', (err) => console.error('Socket connect_error:', err));
+  Globals.socket.on('error', (err) => console.error('Socket error:', err));
 
   registerGeneralEventHandlers();
   registerHoneytokenEventHandlers();
@@ -121,13 +130,11 @@ function initWebSocketConnection() {
   registerStatusEventHandlers();
 
   setInterval(() => {
-    //sending
     Globals.socket.emit('statusUpdate', {
       status: {
         platform: process.platform,
         time: new Date().toISOString(),
       },
     });
-    //
   }, 60_000);
 }
