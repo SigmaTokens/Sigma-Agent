@@ -19,6 +19,7 @@ import { registerGeneralEventHandlers } from './sockets/general.ts';
 import { registerHoneytokenEventHandlers } from './sockets/honeytoken.ts';
 import { registerMonitorEventHandlers } from './sockets/monitor.ts';
 import { registerStatusEventHandlers } from './sockets/status.ts';
+import { isIP } from 'node:net';
 
 main();
 
@@ -108,7 +109,7 @@ function initWebSocketConnection() {
   const agentId = process.env[Constants.AGENT_ID_VARIABLE];
   const raw = process.env.MANAGER_HOST!;
 
-  const ioUrl = /^https?:\/\//i.test(raw) ? raw.replace(/\/+$/, '') : `https://${raw}`;
+  const ioUrl = normalizeIoUrl(raw);
 
   Globals.socket = io(ioUrl, {
     query: { agentId },
@@ -138,4 +139,35 @@ function initWebSocketConnection() {
       },
     });
   }, 60_000);
+}
+
+function normalizeIoUrl(raw: string): string {
+  if (!raw) throw new Error('MANAGER_HOST is empty');
+
+  const trimmed = raw.trim().replace(/\/+$/, '');
+
+  // If protocol is already present, just return (sans trailing slash).
+  if (/^(?:https?|wss?):\/\//i.test(trimmed)) return trimmed;
+
+  // Split into [host] and optional :port
+  const m = trimmed.match(/^(\[[^\]]+\]|[^:]+)(?::(\d{1,5}))?$/);
+  if (!m) throw new Error(`Invalid MANAGER_HOST: "${raw}"`);
+
+  let host = m[1];
+  const port = m[2];
+
+  // Unwrap brackets for IP test
+  const unwrapped = host.startsWith('[') && host.endsWith(']') ? host.slice(1, -1) : host;
+
+  const ipVersion = isIP(unwrapped); // 0 = no, 4, 6
+  const isLocalhost = unwrapped.toLowerCase() === 'localhost';
+
+  // IPs (or localhost) → ws://, domains → https://
+  const scheme = ipVersion > 0 || isLocalhost ? 'ws://' : 'https://';
+
+  // Re-wrap IPv6 if needed
+  if (ipVersion === 6 && !host.startsWith('[')) host = `[${unwrapped}]`;
+
+  const authority = port ? `${host}:${port}` : host;
+  return `${scheme}${authority}`;
 }
